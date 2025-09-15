@@ -50,7 +50,7 @@
 </head>
 <body>
   <div id="loadingOverlay">
-    <img src="https://drive.google.com/uc?export=download&id=YOUR_FILE_ID" alt="Loading Animation">
+    <img src="https://cdn.dribbble.com/users/807926/screenshots/3629667/loadingtwo.gif" alt="Loading Animation">
     <p>Ielādējam dzīvnieku datubāzi...</p>
   </div>
   <iframe
@@ -62,14 +62,12 @@
     const iframe = document.getElementById('appIframe');
     iframe.onload = () => {
       console.log('Iframe loaded successfully');
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      loadingOverlay.classList.add('hidden');
       setTimeout(() => {
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        loadingOverlay.classList.add('hidden');
-        setTimeout(() => {
-          loadingOverlay.style.display = 'none';
-          console.log('Loading overlay hidden');
-        }, 500); // Match transition duration
-      }, 1000); // Delay for rendering
+        loadingOverlay.style.display = 'none';
+        console.log('Loading overlay hidden');
+      }, 500); // Match transition duration
     };
     iframe.onerror = () => {
       console.error('Iframe failed to load');
@@ -89,7 +87,7 @@
           loadingOverlay.style.display = 'none';
         }, 500);
       }
-    }, 5000); // 5-second timeout
+    }, 3000); // Reduced to 3 seconds for faster feedback
   </script>
 </body>
 </html>
