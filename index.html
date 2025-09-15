@@ -13,7 +13,7 @@
     body {
       margin: 0;
       padding: 0;
-      overflow: hidden; /* Prevent scrollbars */
+      overflow: hidden;
       font-family: 'Segoe UI', Verdana, sans-serif;
       background: #e9f5ee;
     }
@@ -27,9 +27,15 @@
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-    #g_id_onload {
-      /* Hidden config for JS callback */
-      visibility: hidden;
+    #userInfo {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #2E8B57;
+    }
+    #errorMessage {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
     }
     #loadingOverlay {
       position: fixed;
@@ -65,15 +71,9 @@
       border: none;
       display: block;
     }
-    #userInfo {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #2E8B57;
-    }
   </style>
 </head>
 <body>
-  <!-- Google Sign-In Button (renders automatically) -->
   <div id="loginSection">
     <div id="g_id_signin" 
          data-type="standard"
@@ -81,11 +81,12 @@
          data-theme="outline"
          data-text="signup_with"
          data-shape="rectangular"
-         data-logo_alignment="left">
+         data-logo_alignment="left"
+         data-ux_mode="popup">
     </div>
     <div id="userInfo" style="display: none;"></div>
+    <div id="errorMessage" style="display: none;"></div>
   </div>
-
   <div id="loadingOverlay">
     <img src="https://cdn.dribbble.com/users/807926/screenshots/3629667/loadingtwo.gif" alt="Loading Animation">
     <p>Ielādējam dzīvnieku datubāzi...</p>
@@ -95,51 +96,78 @@
     src="https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec"
     title="Latgales Zoodārza Dzīvnieku Datubāze"
   ></iframe>
-
   <script>
-    // Google Sign-In Callback: Handles credential response
+    // Enhanced error handling
+    window.onerror = function(msg, url, line) {
+      console.error('Global error:', msg, 'at', url + ':' + line);
+      document.getElementById('errorMessage').innerHTML = 'Error: ' + msg;
+      document.getElementById('errorMessage').style.display = 'block';
+    };
+
     function handleCredentialResponse(response) {
+      if (response.error) {
+        console.error('Google Sign-In Error:', response.error, response.error_description);
+        document.getElementById('errorMessage').innerHTML = `Sign-In Error: ${response.error_description} (Please allow popups in browser settings)`;
+        document.getElementById('errorMessage').style.display = 'block';
+        // Fallback to redirect mode if popup fails
+        if (response.error === 'popup_closed_by_user' || response.error === 'popup_blocked_by_browser') {
+          console.log('Switching to redirect mode');
+          google.accounts.id.initialize({
+            client_id: '342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleusercontent.com',
+            callback: handleCredentialResponse,
+            auto_select: false,
+            cancel_on_tap_outside: false,
+            ux_mode: 'redirect',
+            redirect_uri: window.location.href
+          });
+          google.accounts.id.prompt();
+        }
+        return;
+      }
       console.log('Google Sign-In Success:', response);
-      // Decode JWT token for user info (no backend needed for basic display)
       const payload = JSON.parse(atob(response.credential.split('.')[1]));
       const userInfo = document.getElementById('userInfo');
-      userInfo.innerHTML = `
-        Sveiki, ${payload.name}! (<a href="#" onclick="signOut()">Iziet</a>)<br>
-        E-pasts: ${payload.email}
-      `;
+      userInfo.innerHTML = `Sveiki, ${payload.name}! (<a href="#" onclick="signOut()">Iziet</a>)<br>E-pasts: ${payload.email}`;
       userInfo.style.display = 'block';
-      document.getElementById('g_id_signin').style.display = 'none'; // Hide button after sign-in
-
-      // Optional: Send ID token to your Apps Script backend for verification/session
-      // Use postMessage to communicate with iframe, or fetch if you expose an endpoint
-      const iframe = document.getElementById('appIframe');
-      iframe.contentWindow.postMessage({ type: 'GOOGLE_LOGIN', token: response.credential }, '*');
+      document.getElementById('g_id_signin').style.display = 'none';
+      document.getElementById('errorMessage').style.display = 'none';
+      document.getElementById('appIframe').contentWindow.postMessage({ type: 'GOOGLE_LOGIN', token: response.credential }, '*');
     }
-
-    // Google Sign-In Config (hidden div for JS params)
-    window.onload = function () {
-      google.accounts.id.initialize({
-        client_id: '"342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleusercontent.com', // Replace with your Client ID
-        callback: handleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: false
-      });
-      google.accounts.id.renderButton(
-        document.getElementById('g_id_signin'),
-        { theme: 'outline', size: 'large', type: 'standard', text: 'signup_with' } // Customize button
-      );
-    };
 
     function signOut() {
       google.accounts.id.disableAutoSelect();
       document.getElementById('userInfo').style.display = 'none';
       document.getElementById('g_id_signin').style.display = 'block';
-      // Optional: Notify iframe/backend
-      const iframe = document.getElementById('appIframe');
-      iframe.contentWindow.postMessage({ type: 'GOOGLE_LOGOUT' }, '*');
+      document.getElementById('errorMessage').style.display = 'none';
+      document.getElementById('appIframe').contentWindow.postMessage({ type: 'GOOGLE_LOGOUT' }, '*');
     }
 
-    // Existing iframe loading logic (unchanged)
+    window.onload = function () {
+      const clientId = '342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleusercontent.com';
+      google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: false,
+        ux_mode: 'popup'
+      });
+      google.accounts.id.renderButton(
+        document.getElementById('g_id_signin'),
+        { theme: 'outline', size: 'large', type: 'standard', text: 'signup_with' }
+      );
+      console.log('GIS initialized with Client ID:', clientId);
+      // Prompt for sign-in automatically
+      google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          const reason = notification.getNotDisplayedReason() || notification.getSkippedReason();
+          console.warn('Sign-in prompt failed:', reason);
+          document.getElementById('errorMessage').innerHTML = `Sign-in failed: ${reason} (Check browser popup settings or Google Cloud Console)`;
+          document.getElementById('errorMessage').style.display = 'block';
+        }
+      });
+    };
+
+    // Iframe loading logic
     const iframe = document.getElementById('appIframe');
     iframe.onload = () => {
       console.log('Iframe loaded successfully');
