@@ -9,20 +9,87 @@
       margin: 0;
       padding: 0;
       overflow: hidden; /* Prevent scrollbars */
+      font-family: 'Segoe UI', Verdana, sans-serif;
+      background: #e9f5ee;
+    }
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+      opacity: 1;
+      transition: opacity 0.5s ease-out;
+    }
+    #loadingOverlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #loadingOverlay img {
+      width: 150px;
+      height: auto;
+    }
+    #loadingOverlay p {
+      font-size: 18px;
+      color: #2E8B57;
+      margin-top: 10px;
     }
     #appIframe {
       width: 100vw;
       height: 100vh;
-      border: none; /* Remove iframe border */
+      border: none;
       display: block;
     }
   </style>
 </head>
 <body>
+  <div id="loadingOverlay">
+    <img src="https://drive.google.com/uc?export=download&id=YOUR_FILE_ID" alt="Loading Animation">
+    <p>Ielādējam dzīvnieku datubāzi...</p>
+  </div>
   <iframe
     id="appIframe"
     src="https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec"
     title="Latgales Zoodārza Dzīvnieku Datubāze"
   ></iframe>
+  <script>
+    const iframe = document.getElementById('appIframe');
+    iframe.onload = () => {
+      console.log('Iframe loaded successfully');
+      setTimeout(() => {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        loadingOverlay.classList.add('hidden');
+        setTimeout(() => {
+          loadingOverlay.style.display = 'none';
+          console.log('Loading overlay hidden');
+        }, 500); // Match transition duration
+      }, 1000); // Delay for rendering
+    };
+    iframe.onerror = () => {
+      console.error('Iframe failed to load');
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      loadingOverlay.classList.add('hidden');
+      setTimeout(() => {
+        loadingOverlay.style.display = 'none';
+      }, 500);
+    };
+    // Fallback timeout
+    setTimeout(() => {
+      if (!document.getElementById('loadingOverlay').classList.contains('hidden')) {
+        console.warn('Iframe load timeout');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        loadingOverlay.classList.add('hidden');
+        setTimeout(() => {
+          loadingOverlay.style.display = 'none';
+        }, 500);
+      }
+    }, 5000); // 5-second timeout
+  </script>
 </body>
 </html>
