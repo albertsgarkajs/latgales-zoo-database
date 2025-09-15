@@ -158,7 +158,7 @@
           google.accounts.id.initialize({
             client_id: '342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleusercontent.com',
             callback: handleCredentialResponse,
-            auto_select: false,
+            auto_select: true,
             cancel_on_tap_outside: false,
             ux_mode: 'redirect',
             redirect_uri: window.location.href
@@ -174,6 +174,9 @@
       userInfo.style.display = 'block';
       document.getElementById('g_id_signin').style.display = 'none';
       document.getElementById('errorMessage').style.display = 'none';
+      // Store token in localStorage
+      localStorage.setItem('google_id_token', response.credential);
+      console.log('Stored token in localStorage:', response.credential.substring(0, 20) + '...');
       console.log('Sending GOOGLE_LOGIN message to iframe');
       document.getElementById('appIframe').contentWindow.postMessage({ type: 'GOOGLE_LOGIN', token: response.credential }, '*');
       // Hide login section after sign-in
@@ -184,6 +187,8 @@
     function signOut() {
       console.log('Initiating sign-out');
       google.accounts.id.disableAutoSelect();
+      localStorage.removeItem('google_id_token');
+      console.log('Cleared token from localStorage');
       document.getElementById('userInfo').style.display = 'none';
       document.getElementById('g_id_signin').style.display = 'block';
       document.getElementById('errorMessage').style.display = 'none';
@@ -198,7 +203,7 @@
       google.accounts.id.initialize({
         client_id: clientId,
         callback: handleCredentialResponse,
-        auto_select: false,
+        auto_select: true, // Enable auto-select
         cancel_on_tap_outside: false,
         ux_mode: 'popup'
       });
@@ -207,14 +212,40 @@
         { theme: 'outline', size: 'large', type: 'standard', text: 'signup_with' }
       );
       console.log('GIS initialized with Client ID:', clientId);
-      google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          const reason = notification.getNotDisplayedReason() || notification.getSkippedReason();
-          console.warn('Sign-in prompt failed:', reason);
-          document.getElementById('errorMessage').innerHTML = `Autorizācijas kļūda: ${reason}. Pārbaudiet pārlūka uznirstošo logu iestatījumus vai Google Cloud Console.`;
-          document.getElementById('errorMessage').style.display = 'block';
+      // Check for stored token
+      const storedToken = localStorage.getItem('google_id_token');
+      if (storedToken) {
+        console.log('Found stored token:', storedToken.substring(0, 20) + '...');
+        // Verify token validity by decoding and checking expiry
+        try {
+          const payload = JSON.parse(atob(storedToken.split('.')[1]));
+          const now = Math.floor(Date.now() / 1000);
+          if (payload.exp > now) {
+            console.log('Stored token valid, sending to iframe');
+            document.getElementById('userInfo').innerHTML = `Sveiki, ${payload.name}! (<a href="#" onclick="signOut()">Iziet</a>)<br>E-pasts: ${payload.email}`;
+            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('g_id_signin').style.display = 'none';
+            document.getElementById('appIframe').contentWindow.postMessage({ type: 'GOOGLE_LOGIN', token: storedToken }, '*');
+          } else {
+            console.log('Stored token expired, clearing');
+            localStorage.removeItem('google_id_token');
+            google.accounts.id.prompt();
+          }
+        } catch (e) {
+          console.error('Error validating stored token:', e);
+          localStorage.removeItem('google_id_token');
+          google.accounts.id.prompt();
         }
-      });
+      } else {
+        google.accounts.id.prompt((notification) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            const reason = notification.getNotDisplayedReason() || notification.getSkippedReason();
+            console.warn('Sign-in prompt failed:', reason);
+            document.getElementById('errorMessage').innerHTML = `Autorizācijas kļūda: ${reason}. Pārbaudiet pārlūka uznirstošo logu iestatījumus vai Google Cloud Console.`;
+            document.getElementById('errorMessage').style.display = 'block';
+          }
+        });
+      }
     };
 
     // Iframe loading logic
