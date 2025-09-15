@@ -80,14 +80,14 @@
     // Fallback timeout
     setTimeout(() => {
       if (!document.getElementById('loadingOverlay').classList.contains('hidden')) {
-        console.warn('Iframe load timeout');
+        console.warn('Iframe load timeout after 8 seconds');
         const loadingOverlay = document.getElementById('loadingOverlay');
         loadingOverlay.classList.add('hidden');
         setTimeout(() => {
           loadingOverlay.style.display = 'none';
         }, 500);
       }
-    }, 3000); // Reduced to 3 seconds for faster feedback
+    }, 8000); // 8-second timeout to accommodate data fetching
   </script>
 </body>
 </html>
