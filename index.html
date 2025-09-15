@@ -203,7 +203,7 @@
       google.accounts.id.initialize({
         client_id: clientId,
         callback: handleCredentialResponse,
-        auto_select: true, // Enable auto-select
+        auto_select: true,
         cancel_on_tap_outside: false,
         ux_mode: 'popup'
       });
@@ -247,6 +247,22 @@
         });
       }
     };
+
+    // Listen for token requests from iframe
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'REQUEST_TOKEN') {
+        console.log('Received REQUEST_TOKEN from iframe');
+        const storedToken = localStorage.getItem('google_id_token');
+        if (storedToken) {
+          console.log('Sending stored token to iframe:', storedToken.substring(0, 20) + '...');
+          document.getElementById('appIframe').contentWindow.postMessage({ type: 'GOOGLE_LOGIN', token: storedToken }, '*');
+        } else {
+          console.log('No stored token found');
+          document.getElementById('errorMessage').innerHTML = 'Nav atrasts autorizācijas tokens. Lūdzu, pierakstieties vēlreiz.';
+          document.getElementById('errorMessage').style.display = 'block';
+        }
+      }
+    });
 
     // Iframe loading logic
     const iframe = document.getElementById('appIframe');
