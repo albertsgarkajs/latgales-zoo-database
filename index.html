@@ -36,6 +36,7 @@
       color: red;
       font-size: 14px;
       margin-top: 10px;
+      max-width: 300px;
     }
     #loadingOverlay {
       position: fixed;
@@ -97,19 +98,17 @@
     title="Latgales Zoodārza Dzīvnieku Datubāze"
   ></iframe>
   <script>
-    // Enhanced error handling
     window.onerror = function(msg, url, line) {
       console.error('Global error:', msg, 'at', url + ':' + line);
-      document.getElementById('errorMessage').innerHTML = 'Error: ' + msg;
+      document.getElementById('errorMessage').innerHTML = 'Kļūda: ' + msg;
       document.getElementById('errorMessage').style.display = 'block';
     };
 
     function handleCredentialResponse(response) {
       if (response.error) {
         console.error('Google Sign-In Error:', response.error, response.error_description);
-        document.getElementById('errorMessage').innerHTML = `Sign-In Error: ${response.error_description} (Please allow popups in browser settings)`;
+        document.getElementById('errorMessage').innerHTML = `Autorizācijas kļūda: ${response.error_description}. Lūdzu, atļaujiet uznirstošos logus pārlūkā vai pārbaudiet Google Cloud Console iestatījumus.`;
         document.getElementById('errorMessage').style.display = 'block';
-        // Fallback to redirect mode if popup fails
         if (response.error === 'popup_closed_by_user' || response.error === 'popup_blocked_by_browser') {
           console.log('Switching to redirect mode');
           google.accounts.id.initialize({
@@ -131,10 +130,12 @@
       userInfo.style.display = 'block';
       document.getElementById('g_id_signin').style.display = 'none';
       document.getElementById('errorMessage').style.display = 'none';
+      console.log('Sending GOOGLE_LOGIN message to iframe');
       document.getElementById('appIframe').contentWindow.postMessage({ type: 'GOOGLE_LOGIN', token: response.credential }, '*');
     }
 
     function signOut() {
+      console.log('Initiating sign-out');
       google.accounts.id.disableAutoSelect();
       document.getElementById('userInfo').style.display = 'none';
       document.getElementById('g_id_signin').style.display = 'block';
@@ -156,12 +157,11 @@
         { theme: 'outline', size: 'large', type: 'standard', text: 'signup_with' }
       );
       console.log('GIS initialized with Client ID:', clientId);
-      // Prompt for sign-in automatically
       google.accounts.id.prompt((notification) => {
         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
           const reason = notification.getNotDisplayedReason() || notification.getSkippedReason();
           console.warn('Sign-in prompt failed:', reason);
-          document.getElementById('errorMessage').innerHTML = `Sign-in failed: ${reason} (Check browser popup settings or Google Cloud Console)`;
+          document.getElementById('errorMessage').innerHTML = `Autorizācijas kļūda: ${reason}. Pārbaudiet pārlūka uznirstošo logu iestatījumus vai Google Cloud Console.`;
           document.getElementById('errorMessage').style.display = 'block';
         }
       });
