@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Latgales Zoodārza Dzīvnieku Datubāze</title>
+  <!-- Google Sign-In Meta Tags -->
+  <meta name="google-signin-client_id" content="YOUR_CLIENT_ID.apps.googleusercontent.com">
+  <meta name="google-signin-scope" content="profile email">
+  <!-- Google Identity Services Script -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     body {
       margin: 0;
@@ -11,6 +16,20 @@
       overflow: hidden; /* Prevent scrollbars */
       font-family: 'Segoe UI', Verdana, sans-serif;
       background: #e9f5ee;
+    }
+    #loginSection {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 4000;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    #g_id_onload {
+      /* Hidden config for JS callback */
+      visibility: hidden;
     }
     #loadingOverlay {
       position: fixed;
@@ -46,9 +65,27 @@
       border: none;
       display: block;
     }
+    #userInfo {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #2E8B57;
+    }
   </style>
 </head>
 <body>
+  <!-- Google Sign-In Button (renders automatically) -->
+  <div id="loginSection">
+    <div id="g_id_signin" 
+         data-type="standard"
+         data-size="large"
+         data-theme="outline"
+         data-text="signup_with"
+         data-shape="rectangular"
+         data-logo_alignment="left">
+    </div>
+    <div id="userInfo" style="display: none;"></div>
+  </div>
+
   <div id="loadingOverlay">
     <img src="https://cdn.dribbble.com/users/807926/screenshots/3629667/loadingtwo.gif" alt="Loading Animation">
     <p>Ielādējam dzīvnieku datubāzi...</p>
@@ -58,7 +95,51 @@
     src="https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec"
     title="Latgales Zoodārza Dzīvnieku Datubāze"
   ></iframe>
+
   <script>
+    // Google Sign-In Callback: Handles credential response
+    function handleCredentialResponse(response) {
+      console.log('Google Sign-In Success:', response);
+      // Decode JWT token for user info (no backend needed for basic display)
+      const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      const userInfo = document.getElementById('userInfo');
+      userInfo.innerHTML = `
+        Sveiki, ${payload.name}! (<a href="#" onclick="signOut()">Iziet</a>)<br>
+        E-pasts: ${payload.email}
+      `;
+      userInfo.style.display = 'block';
+      document.getElementById('g_id_signin').style.display = 'none'; // Hide button after sign-in
+
+      // Optional: Send ID token to your Apps Script backend for verification/session
+      // Use postMessage to communicate with iframe, or fetch if you expose an endpoint
+      const iframe = document.getElementById('appIframe');
+      iframe.contentWindow.postMessage({ type: 'GOOGLE_LOGIN', token: response.credential }, '*');
+    }
+
+    // Google Sign-In Config (hidden div for JS params)
+    window.onload = function () {
+      google.accounts.id.initialize({
+        client_id: 'YOUR_CLIENT_ID.apps.googleusercontent.com', // Replace with your Client ID
+        callback: handleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: false
+      });
+      google.accounts.id.renderButton(
+        document.getElementById('g_id_signin'),
+        { theme: 'outline', size: 'large', type: 'standard', text: 'signup_with' } // Customize button
+      );
+    };
+
+    function signOut() {
+      google.accounts.id.disableAutoSelect();
+      document.getElementById('userInfo').style.display = 'none';
+      document.getElementById('g_id_signin').style.display = 'block';
+      // Optional: Notify iframe/backend
+      const iframe = document.getElementById('appIframe');
+      iframe.contentWindow.postMessage({ type: 'GOOGLE_LOGOUT' }, '*');
+    }
+
+    // Existing iframe loading logic (unchanged)
     const iframe = document.getElementById('appIframe');
     iframe.onload = () => {
       console.log('Iframe loaded successfully');
@@ -67,7 +148,7 @@
       setTimeout(() => {
         loadingOverlay.style.display = 'none';
         console.log('Loading overlay hidden');
-      }, 500); // Match transition duration
+      }, 500);
     };
     iframe.onerror = () => {
       console.error('Iframe failed to load');
@@ -77,7 +158,6 @@
         loadingOverlay.style.display = 'none';
       }, 500);
     };
-    // Fallback timeout
     setTimeout(() => {
       if (!document.getElementById('loadingOverlay').classList.contains('hidden')) {
         console.warn('Iframe load timeout after 8 seconds');
@@ -87,7 +167,7 @@
           loadingOverlay.style.display = 'none';
         }, 500);
       }
-    }, 8000); // 8-second timeout to accommodate data fetching
+    }, 8000);
   </script>
 </body>
 </html>
