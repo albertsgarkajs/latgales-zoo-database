@@ -19,13 +19,33 @@
     }
     #loginSection {
       position: fixed;
-      top: 20px;
-      right: 20px;
+      top: 10px;
+      right: 10px;
       z-index: 4000;
       background: white;
-      padding: 15px;
+      padding: 10px;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: none; /* Hidden by default */
+    }
+    #loginSection.active {
+      display: block;
+    }
+    #toggleLogin {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 4100;
+      background-color: #2E8B57;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    #toggleLogin:hover {
+      background-color: #006400;
     }
     #userInfo {
       margin-top: 10px;
@@ -72,9 +92,25 @@
       border: none;
       display: block;
     }
+    /* Responsive adjustments */
+    @media screen and (max-width: 768px) {
+      #loginSection {
+        top: 50px; /* Move below header */
+        right: 5px;
+        width: 200px;
+        padding: 8px;
+      }
+      #toggleLogin {
+        top: 5px;
+        right: 5px;
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+    }
   </style>
 </head>
 <body>
+  <button id="toggleLogin" onclick="toggleLoginSection()">Autorizācija</button>
   <div id="loginSection">
     <div id="g_id_signin" 
          data-type="standard"
@@ -98,6 +134,14 @@
     title="Latgales Zoodārza Dzīvnieku Datubāze"
   ></iframe>
   <script>
+    function toggleLoginSection() {
+      const loginSection = document.getElementById('loginSection');
+      loginSection.classList.toggle('active');
+      const toggleButton = document.getElementById('toggleLogin');
+      toggleButton.textContent = loginSection.classList.contains('active') ? 'Aizvērt' : 'Autorizācija';
+      console.log('Toggled login section:', loginSection.classList.contains('active') ? 'visible' : 'hidden');
+    }
+
     window.onerror = function(msg, url, line) {
       console.error('Global error:', msg, 'at', url + ':' + line);
       document.getElementById('errorMessage').innerHTML = 'Kļūda: ' + msg;
@@ -132,6 +176,9 @@
       document.getElementById('errorMessage').style.display = 'none';
       console.log('Sending GOOGLE_LOGIN message to iframe');
       document.getElementById('appIframe').contentWindow.postMessage({ type: 'GOOGLE_LOGIN', token: response.credential }, '*');
+      // Hide login section after sign-in
+      document.getElementById('loginSection').classList.remove('active');
+      document.getElementById('toggleLogin').textContent = 'Autorizācija';
     }
 
     function signOut() {
@@ -141,6 +188,9 @@
       document.getElementById('g_id_signin').style.display = 'block';
       document.getElementById('errorMessage').style.display = 'none';
       document.getElementById('appIframe').contentWindow.postMessage({ type: 'GOOGLE_LOGOUT' }, '*');
+      // Hide login section after sign-out
+      document.getElementById('loginSection').classList.remove('active');
+      document.getElementById('toggleLogin').textContent = 'Autorizācija';
     }
 
     window.onload = function () {
