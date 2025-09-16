@@ -93,6 +93,21 @@
     .btn-retry:hover {
       background-color: #006400;
     }
+    /* Invisible overlay for Iziet button */
+    #signOutOverlay {
+      position: fixed;
+      top: 70px; /* Matches nav's sticky top position in code.gs */
+      right: 10px; /* Approximate right side of nav */
+      width: 80px; /* Approximate width of Iziet button */
+      height: 40px; /* Approximate height of nav button */
+      z-index: 1001; /* Above iframe (z-index 1000 for header, 999 for nav) */
+      cursor: pointer;
+      opacity: 0; /* Invisible but clickable */
+    }
+    #signOutOverlay:hover {
+      opacity: 0.1; /* Slight feedback for debugging, adjust if needed */
+      background-color: #32CD32; /* Matches nav button hover */
+    }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -117,6 +132,7 @@
     src=""
     title="Latgales Zoodārza Dzīvnieku Datubāze"
   ></iframe>
+  <div id="signOutOverlay" title="Iziet"></div>
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     let userEmail = '';
@@ -171,7 +187,7 @@
     }
     async function signOut() {
       try {
-        logDebug('Initiating server-side sign-out');
+        logDebug('Initiating server-side sign-out from overlay');
         const response = await fetch('/api/auth/signout', {
           method: 'GET',
           credentials: 'include'
@@ -232,6 +248,9 @@
             setTimeout(() => {
               document.getElementById('loadingOverlay').style.display = 'none';
             }, 500);
+            // Adjust signOutOverlay position after iframe loads
+            const signOutOverlay = document.getElementById('signOutOverlay');
+            signOutOverlay.onclick = signOut;
           };
           iframe.onerror = () => {
             showError('Kļūda ielādējot lietojumprogrammu. Lūdzu, mēģiniet vēlreiz.');
@@ -249,14 +268,6 @@
         showError('Kļūda pārbaudot autentifikāciju: ' + error.message);
       }
     };
-    // Injected JavaScript to handle sign-out from iframe
-    window.addEventListener('message', (event) => {
-      logDebug('Received message from ' + event.origin + ': ' + JSON.stringify(event.data));
-      if (event.origin === 'https://script.google.com' && event.data.action === 'signOut') {
-        logDebug('Received signOut action from iframe, triggering server-side sign-out');
-        signOut();
-      }
-    });
   </script>
 </body>
 </html>
