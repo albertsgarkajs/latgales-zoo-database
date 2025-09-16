@@ -4,7 +4,8 @@ module.exports = async (req, res) => {
     console.log('URL:', req.url);
     console.log('Method:', req.method);
     console.log('Cookies:', req.cookies);
-    const CLIENT_ID = '342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleusercontent.com';
+    const CLIENT_ID = '342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleuserconten
+t.com';
     if (req.method === 'POST' && req.url.includes('/api/auth/callback')) {
       console.log('Handling OAuth callback with ID token');
       try {
