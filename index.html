@@ -171,7 +171,7 @@
     }
     async function signOut() {
       try {
-        logDebug('Initiating sign-out');
+        logDebug('Initiating server-side sign-out');
         const response = await fetch('/api/auth/signout', {
           method: 'GET',
           credentials: 'include'
@@ -187,19 +187,6 @@
         }
       } catch (error) {
         showError(`Kļūda izrakstoties: ${error.message}`);
-      }
-    }
-    function addSignOutButton() {
-      logDebug('Sending message to add sign-out button to iframe');
-      const iframe = document.getElementById('appIframe');
-      if (iframe.contentWindow) {
-        iframe.contentWindow.postMessage({
-          action: 'addSignOutButton'
-        }, 'https://script.google.com');
-      } else {
-        logDebug('Iframe contentWindow not available yet');
-        // Retry after a short delay
-        setTimeout(addSignOutButton, 500);
       }
     }
     window.onload = async () => {
@@ -241,7 +228,6 @@
           iframe.style.display = 'block';
           iframe.onload = () => {
             logDebug('Iframe loaded successfully');
-            addSignOutButton();
             document.getElementById('loadingOverlay').classList.add('hidden');
             setTimeout(() => {
               document.getElementById('loadingOverlay').style.display = 'none';
@@ -263,6 +249,13 @@
         showError(`Kļūda pārbaudot autentifikāciju: ${error.message}`);
       }
     };
+    window.addEventListener('message', (event) => {
+      logDebug('Received message from ' + event.origin + ': ' + JSON.stringify(event.data));
+      if (event.origin === 'https://script.google.com' && event.data.action === 'signOut') {
+        logDebug('Received signOut action from iframe');
+        signOut();
+      }
+    });
   </script>
 </body>
 </html>
