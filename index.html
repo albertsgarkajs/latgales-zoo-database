@@ -159,8 +159,7 @@
                 showError('Authentication succeeded but reload blocked to prevent loop');
               }
             } else {
-              const errorData = JSON.parse(responseText);
-              showError(`Kļūda: ${errorData.error || 'Neizdevās pierakstīties'}`);
+              showError(`Kļūda: ${JSON.parse(responseText).error || 'Neizdevās pierakstīties'}`);
             }
           })
           .catch((error) => {
@@ -190,6 +189,19 @@
         showError(`Kļūda izrakstoties: ${error.message}`);
       }
     }
+    function addSignOutButton() {
+      logDebug('Sending message to add sign-out button to iframe');
+      const iframe = document.getElementById('appIframe');
+      if (iframe.contentWindow) {
+        iframe.contentWindow.postMessage({
+          action: 'addSignOutButton'
+        }, 'https://script.google.com');
+      } else {
+        logDebug('Iframe contentWindow not available yet');
+        // Retry after a short delay
+        setTimeout(addSignOutButton, 500);
+      }
+    }
     window.onload = async () => {
       logDebug('Starting authentication check');
       try {
@@ -209,12 +221,12 @@
         if (response.status === 404) {
           throw new Error('Authentication endpoint not found. Please contact the administrator.');
         }
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          const text = await response.text();
-          throw new Error(`Invalid response from /api/auth/check: ${text}`);
+        let data;
+        try {
+          data = await response.json();
+        } catch (e) {
+          throw new Error(`Invalid JSON response from /api/auth/check: ${await response.text()}`);
         }
-        const data = await response.json();
         logDebug('Auth check response data: ' + JSON.stringify(data));
         if (data.error) {
           showError(`Kļūda: ${data.error}`);
@@ -225,12 +237,19 @@
           userEmail = data.email;
           logDebug('User is authenticated, email: ' + userEmail + ', showing iframe');
           document.getElementById('loginContainer').classList.add('hidden');
-          iframe.src = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`;
+          iframe.src = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&section=Zīdītāji`;
           iframe.style.display = 'block';
-          document.getElementById('loadingOverlay').classList.add('hidden');
-          setTimeout(() => {
-            document.getElementById('loadingOverlay').style.display = 'none';
-          }, 500);
+          iframe.onload = () => {
+            logDebug('Iframe loaded successfully');
+            addSignOutButton();
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            setTimeout(() => {
+              document.getElementById('loadingOverlay').style.display = 'none';
+            }, 500);
+          };
+          iframe.onerror = () => {
+            showError('Kļūda ielādējot lietojumprogrammu. Lūdzu, mēģiniet vēlreiz.');
+          };
         } else {
           logDebug('User is not authenticated, showing login container');
           document.getElementById('loginContainer').classList.remove('hidden');
@@ -240,23 +259,6 @@
             document.getElementById('loadingOverlay').style.display = 'none';
           }, 500);
         }
-        iframe.onload = () => {
-          logDebug('Iframe loaded successfully');
-          document.getElementById('loadingOverlay').classList.add('hidden');
-          setTimeout(() => {
-            document.getElementById('loadingOverlay').style.display = 'none';
-          }, 500);
-        };
-        iframe.onerror = () => {
-          showError('Kļūda ielādējot lietojumprogrammu. Lūdzu, mēģiniet vēlreiz.');
-        };
-        window.addEventListener('message', (event) => {
-          logDebug(`Received message from ${event.origin}: ${JSON.stringify(event.data)}`);
-          if (event.origin === 'https://script.google.com' && event.data.action === 'signOut') {
-            logDebug('Sign-out message received, calling signOut');
-            signOut();
-          }
-        });
       } catch (error) {
         showError(`Kļūda pārbaudot autentifikāciju: ${error.message}`);
       }
