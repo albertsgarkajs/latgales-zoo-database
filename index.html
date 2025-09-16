@@ -1,129 +1,192 @@
-const fetch = require('node-fetch');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Latgales Zoodārza Dzīvnieku Datubāze</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Segoe UI', Verdana, sans-serif;
+      background: #e9f5ee;
+    }
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+      opacity: 1;
+      transition: opacity 0.5s ease-out;
+    }
+    #loadingOverlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #loadingOverlay img {
+      width: 150px;
+      height: auto;
+    }
+    #loadingOverlay p {
+      font-size: 18px;
+      color: #2E8B57;
+      margin-top: 10px;
+    }
+    #appIframe {
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      display: none;
+    }
+    #loginContainer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #e9f5ee;
+      z-index: 2000;
+    }
+    #loginContainer.hidden {
+      display: none;
+    }
+    #errorMessage {
+      color: red;
+      font-size: 16px;
+      margin-top: 20px;
+      text-align: center;
+      max-width: 80%;
+    }
+  </style>
+</head>
+<body>
+  <div id="loadingOverlay">
+    <img src="https://cdn.dribbble.com/users/807926/screenshots/3629667/loadingtwo.gif" alt="Loading Animation">
+    <p>Ielādējam dzīvnieku datubāzi...</p>
+  </div>
+  <div id="loginContainer">
+    <h2>Pierakstieties Latgales Zoodārza Datubāzē</h2>
+    <div id="g_id_onload"
+         data-client_id="342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleusercontent.com"
+         data-redirect_uri="https://latgaleszoodatabase.vercel.app/api/auth/callback"
+         data-callback="handleCredentialResponse">
+    </div>
+    <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_black"></div>
+    <div id="errorMessage"></div>
+  </div>
+  <iframe
+    id="appIframe"
+    src="https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec"
+    title="Latgales Zoodārza Dzīvnieku Datubāze"
+  ></iframe>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script>
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
 
-module.exports = async (req, res) => {
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
-  const CLIENT_ID = '342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleusercontent.com';
-  const CLIENT_SECRET = process.env.CLIENT_SECRET;
-  const REDIRECT_URI = 'https://latgaleszoodatabase.vercel.app/api/auth/callback';
+    function handleCredentialResponse(response) {
+      console.log('Google OAuth initiated:', response);
+    }
 
-  // Handle OAuth callback
-  if (req.query.code && req.url.includes('/api/auth/callback')) {
-    try {
-      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          code: req.query.code,
-          client_id: CLIENT_ID,
-          client_secret: CLIENT_SECRET,
-          redirect_uri: REDIRECT_URI,
-          grant_type: 'authorization_code'
-        })
-      });
-
-      if (!tokenResponse.ok) {
-        const errorText = await tokenResponse.text();
-        throw new Error(`Token exchange failed: ${errorText}`);
-      }
-
-      const tokenData = await tokenResponse.json();
-      const accessToken = tokenData.access_token;
-
-      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-
-      if (!userInfoResponse.ok) {
-        const errorText = await userInfoResponse.text();
-        throw new Error(`Failed to fetch user info: ${errorText}`);
-      }
-
-      const userInfo = await userInfoResponse.json();
-      const email = userInfo.email?.toLowerCase();
-
-      if (!email) {
-        throw new Error('No email found in user info');
-      }
-
-      const authResponse = await fetch(`${APPS_SCRIPT_URL}?action=verifyUser&email=${encodeURIComponent(email)}`, {
-        method: 'GET'
-      });
-
-      const authText = await authResponse.text();
-      console.log('Apps Script verifyUser response:', authText); // Log for debugging
-
-      let authData;
+    window.onload = async () => {
+      console.log('Checking authentication status');
       try {
-        authData = JSON.parse(authText);
-      } catch (e) {
-        throw new Error(`Invalid JSON from Apps Script: ${authText}`);
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('error');
+        if (error) {
+          document.getElementById('errorMessage').textContent = `Kļūda: ${decodeURIComponent(error)}`;
+          window.history.replaceState({}, document.title, '/');
+        }
+
+        const response = await fetch('/api/auth/check', {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (response.status === 404) {
+          throw new Error('Authentication endpoint not found. Please contact the administrator.');
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          throw new Error(`Invalid response from /api/auth/check: ${text}`);
+        }
+
+        const data = await response.json();
+        console.log('Auth check response:', data);
+
+        if (data.error) {
+          document.getElementById('errorMessage').textContent = `Kļūda: ${data.error}`;
+        }
+
+        if (data.isAuthenticated) {
+          document.getElementById('loginContainer').classList.add('hidden');
+          document.getElementById('appIframe').style.display = 'block';
+          document.getElementById('loadingOverlay').classList.add('hidden');
+          setTimeout(() => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error);
+        document.getElementById('errorMessage').textContent = `Kļūda pārbaudot autentifikāciju: ${error.message}`;
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        setTimeout(() => {
+          document.getElementById('loadingOverlay').style.display = 'none';
+        }, 500);
       }
 
-      if (authData.error) {
-        throw new Error(authData.error);
-      }
+      const iframe = document.getElementById('appIframe');
+      iframe.onload = () => {
+        console.log('Iframe loaded successfully');
+        if (document.getElementById('appIframe').style.display === 'block') {
+          document.getElementById('loadingOverlay').classList.add('hidden');
+          setTimeout(() => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+          }, 500);
+        }
+      };
+      iframe.onerror = () => {
+        console.error('Iframe failed to load');
+        document.getElementById('errorMessage').textContent = 'Kļūda ielādējot lietojumprogrammu. Lūdzu, mēģiniet vēlreiz.';
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        setTimeout(() => {
+          document.getElementById('loadingOverlay').style.display = 'none';
+        }, 500);
+      };
 
-      if (authData.isAuthorized) {
-        res.setHeader('Set-Cookie', `session=${encodeURIComponent(email)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`);
-        res.redirect(302, 'https://latgaleszoodatabase.vercel.app/');
-      } else {
-        res.redirect(302, 'https://latgaleszoodatabase.vercel.app/?error=unauthorized');
-      }
-    } catch (error) {
-      console.error('Auth error:', error.message);
-      res.redirect(302, `https://latgaleszoodatabase.vercel.app/?error=${encodeURIComponent(error.message)}`);
-    }
-    return;
-  }
-
-  // Handle authentication check
-  if (req.url.includes('/api/auth/check')) {
-    const sessionCookie = req.cookies?.session;
-    if (!sessionCookie) {
-      return res.status(200).json({ isAuthenticated: false });
-    }
-
-    try {
-      const authResponse = await fetch(`${APPS_SCRIPT_URL}?action=verifyUser&email=${encodeURIComponent(sessionCookie)}`, {
-        method: 'GET'
+      window.addEventListener('message', (event) => {
+        if (event.origin !== 'https://script.google.com') return;
+        if (event.data.action === 'signOut') {
+          signOut();
+        }
       });
+    };
 
-      const authText = await authResponse.text();
-      console.log('Apps Script auth check response:', authText); // Log for debugging
-
-      let authData;
+    async function signOut() {
       try {
-        authData = JSON.parse(authText);
-      } catch (e) {
-        throw new Error(`Invalid JSON from Apps Script: ${authText}`);
+        await fetch('/api/auth/signout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        window.location.reload();
+      } catch (error) {
+        console.error('Sign-out error:', error);
+        document.getElementById('errorMessage').textContent = 'Kļūda izrakstoties: ' + error.message;
       }
-
-      if (authData.error) {
-        throw new Error(authData.error);
-      }
-
-      return res.status(200).json({ isAuthenticated: authData.isAuthorized, email: sessionCookie });
-    } catch (error) {
-      console.error('Auth check error:', error.message);
-      return res.status(200).json({ isAuthenticated: false, error: error.message });
     }
-  }
-
-  // Handle sign-out
-  if (req.url.includes('/api/auth/signout')) {
-    try {
-      await fetch(`${APPS_SCRIPT_URL}?action=logout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: req.cookies?.session })
-      });
-      res.setHeader('Set-Cookie', 'session=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0');
-      return res.status(200).json({ success: true });
-    } catch (error) {
-      console.error('Sign-out error:', error.message);
-      return res.status(500).json({ error: error.message });
-    }
-  }
-
-  res.status(400).json({ error: 'Invalid request' });
-};
+  </script>
+</body>
+</html>
