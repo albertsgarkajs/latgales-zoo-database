@@ -144,7 +144,7 @@
         })
           .then(async (res) => {
             const responseText = await res.text();
-            logDebug(`OAuth callback response: ${responseText}`);
+            logDebug('OAuth callback response: ' + responseText);
             if (res.ok) {
               const data = JSON.parse(responseText);
               userEmail = data.email;
@@ -159,11 +159,11 @@
                 showError('Authentication succeeded but reload blocked to prevent loop');
               }
             } else {
-              showError(`Kļūda: ${JSON.parse(responseText).error || 'Neizdevās pierakstīties'}`);
+              showError('Kļūda: ' + (JSON.parse(responseText).error || 'Neizdevās pierakstīties'));
             }
           })
           .catch((error) => {
-            showError(`Kļūda OAuth atbildē: ${error.message}`);
+            showError('Kļūda OAuth atbildē: ' + error.message);
           });
       } else {
         showError('Kļūda: Nav derīgu Google autentifikācijas datu');
@@ -183,10 +183,10 @@
           userEmail = '';
           window.location.reload();
         } else {
-          showError(`Kļūda izrakstoties: ${result.error || 'Neizdevās izrakstīties'}`);
+          showError('Kļūda izrakstoties: ' + (result.error || 'Neizdevās izrakstīties'));
         }
       } catch (error) {
-        showError(`Kļūda izrakstoties: ${error.message}`);
+        showError('Kļūda izrakstoties: ' + error.message);
       }
     }
     window.onload = async () => {
@@ -195,7 +195,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const error = urlParams.get('error');
         if (error) {
-          showError(`Kļūda no URL: ${decodeURIComponent(error)}`);
+          showError('Kļūda no URL: ' + decodeURIComponent(error));
           window.history.replaceState({}, document.title, '/');
           return;
         }
@@ -204,7 +204,7 @@
           method: 'GET',
           credentials: 'include'
         });
-        logDebug(`Auth check response status: ${response.status}`);
+        logDebug('Auth check response status: ' + response.status);
         if (response.status === 404) {
           throw new Error('Authentication endpoint not found. Please contact the administrator.');
         }
@@ -212,11 +212,11 @@
         try {
           data = await response.json();
         } catch (e) {
-          throw new Error(`Invalid JSON response from /api/auth/check: ${await response.text()}`);
+          throw new Error('Invalid JSON response from /api/auth/check: ' + await response.text());
         }
         logDebug('Auth check response data: ' + JSON.stringify(data));
         if (data.error) {
-          showError(`Kļūda: ${data.error}`);
+          showError('Kļūda: ' + data.error);
           return;
         }
         const iframe = document.getElementById('appIframe');
@@ -246,13 +246,14 @@
           }, 500);
         }
       } catch (error) {
-        showError(`Kļūda pārbaudot autentifikāciju: ${error.message}`);
+        showError('Kļūda pārbaudot autentifikāciju: ' + error.message);
       }
     };
+    // Injected JavaScript to handle sign-out from iframe
     window.addEventListener('message', (event) => {
       logDebug('Received message from ' + event.origin + ': ' + JSON.stringify(event.data));
       if (event.origin === 'https://script.google.com' && event.data.action === 'signOut') {
-        logDebug('Received signOut action from iframe');
+        logDebug('Received signOut action from iframe, triggering server-side sign-out');
         signOut();
       }
     });
