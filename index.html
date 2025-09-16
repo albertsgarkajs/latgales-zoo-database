@@ -44,7 +44,28 @@
       width: 100vw;
       height: 100vh;
       border: none;
-      display: block;
+      display: none; /* Hidden until authenticated */
+    }
+    #loginContainer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #e9f5ee;
+      z-index: 2000;
+    }
+    #loginContainer.hidden {
+      display: none;
+    }
+    #errorMessage {
+      color: red;
+      font-size: 16px;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -53,40 +74,91 @@
     <img src="https://cdn.dribbble.com/users/807926/screenshots/3629667/loadingtwo.gif" alt="Loading Animation">
     <p>Ielādējam dzīvnieku datubāzi...</p>
   </div>
+  <div id="loginContainer">
+    <h2>Pierakstieties Latgales Zoodārza Datubāzē</h2>
+    <div id="g_id_onload"
+         data-client_id="342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleusercontent.com"
+         data-redirect_uri="https://latgaleszoodatabase.vercel.app/api/auth/callback"
+         data-callback="handleCredentialResponse">
+    </div>
+    <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_black"></div>
+    <div id="errorMessage"></div>
+  </div>
   <iframe
     id="appIframe"
     src="https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec"
     title="Latgales Zoodārza Dzīvnieku Datubāze"
   ></iframe>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
-    const iframe = document.getElementById('appIframe');
-    iframe.onload = () => {
-      console.log('Iframe loaded successfully');
-      const loadingOverlay = document.getElementById('loadingOverlay');
-      loadingOverlay.classList.add('hidden');
-      setTimeout(() => {
-        loadingOverlay.style.display = 'none';
-        console.log('Loading overlay hidden');
-      }, 500);
-    };
-    iframe.onerror = () => {
-      console.error('Iframe failed to load');
-      const loadingOverlay = document.getElementById('loadingOverlay');
-      loadingOverlay.classList.add('hidden');
-      setTimeout(() => {
-        loadingOverlay.style.display = 'none';
-      }, 500);
-    };
-    setTimeout(() => {
-      if (!document.getElementById('loadingOverlay').classList.contains('hidden')) {
-        console.warn('Iframe load timeout after 8 seconds');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        loadingOverlay.classList.add('hidden');
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
+
+    // Handle Google OAuth callback (not used directly since server handles it)
+    function handleCredentialResponse(response) {
+      console.log('Google OAuth initiated:', response);
+      // The actual callback is handled by the serverless function
+    }
+
+    // Check authentication status on page load
+    window.onload = async () => {
+      console.log('Checking authentication status');
+      try {
+        const response = await fetch('/api/auth/check', {
+          method: 'GET',
+          credentials: 'include'
+        });
+        const data = await response.json();
+        console.log('Auth check response:', data);
+        if (data.isAuthenticated) {
+          document.getElementById('loginContainer').classList.add('hidden');
+          document.getElementById('appIframe').style.display = 'block';
+          document.getElementById('loadingOverlay').classList.add('hidden');
+          setTimeout(() => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error);
+        document.getElementById('errorMessage').textContent = 'Kļūda pārbaudot autentifikāciju: ' + error.message;
+        document.getElementById('loadingOverlay').classList.add('hidden');
         setTimeout(() => {
-          loadingOverlay.style.display = 'none';
+          document.getElementById('loadingOverlay').style.display = 'none';
         }, 500);
       }
-    }, 8000);
+
+      // Handle iframe loading
+      const iframe = document.getElementById('appIframe');
+      iframe.onload = () => {
+        console.log('Iframe loaded successfully');
+        if (document.getElementById('appIframe').style.display === 'block') {
+          document.getElementById('loadingOverlay').classList.add('hidden');
+          setTimeout(() => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+          }, 500);
+        }
+      };
+      iframe.onerror = () => {
+        console.error('Iframe failed to load');
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        setTimeout(() => {
+          document.getElementById('loadingOverlay').style.display = 'none';
+        }, 500);
+      };
+    };
+
+    // Sign-out function
+    async function signOut() {
+      try {
+        await fetch('/api/auth/signout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        window.location.reload();
+      } catch (error) {
+        console.error('Sign-out error:', error);
+        document.getElementById('errorMessage').textContent = 'Kļūda izrakstoties: ' + error.message;
+      }
+    }
   </script>
 </body>
 </html>
