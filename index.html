@@ -121,10 +121,10 @@
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     let userEmail = '';
     function logDebug(message) {
-      console.log(message);
+      console.log('[index.html] ' + message);
     }
     function showError(message) {
-      console.error(message);
+      console.error('[index.html] ' + message);
       document.getElementById('errorMessage').textContent = message;
       document.getElementById('loginContainer').classList.remove('hidden');
       document.getElementById('loadingOverlay').classList.add('hidden');
@@ -251,10 +251,10 @@
           showError('Kļūda ielādējot lietojumprogrammu. Lūdzu, mēģiniet vēlreiz.');
         };
         window.addEventListener('message', (event) => {
-          if (event.origin === 'https://script.google.com') {
-            if (event.data.action === 'signOut') {
-              signOut();
-            }
+          logDebug(`Received message from ${event.origin}: ${JSON.stringify(event.data)}`);
+          if (event.origin === 'https://script.google.com' && event.data.action === 'signOut') {
+            logDebug('Sign-out message received, calling signOut');
+            signOut();
           }
         });
       } catch (error) {
