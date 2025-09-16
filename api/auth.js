@@ -15,35 +15,20 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Missing CLIENT_SECRET environment variable' });
     }
 
-    // Handle OAuth callback
-    if (req.query && req.query.code && req.url.includes('/api/auth/callback')) {
-      console.log('Handling OAuth callback');
+    // Handle OAuth callback with ID token
+    if (req.method === 'POST' && req.url.includes('/api/auth/callback')) {
+      console.log('Handling OAuth callback with ID token');
       try {
-        const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({
-            code: req.query.code,
-            client_id: CLIENT_ID,
-            client_secret: CLIENT_SECRET,
-            redirect_uri: REDIRECT_URI,
-            grant_type: 'authorization_code'
-          })
-        });
-
-        if (!tokenResponse.ok) {
-          const errorText = await tokenResponse.text();
-          console.error('Token exchange failed:', errorText);
-          throw new Error(`Token exchange failed: ${errorText}`);
+        const { id_token } = req.body;
+        if (!id_token) {
+          console.error('No ID token provided');
+          throw new Error('No ID token provided');
         }
 
-        const tokenData = await tokenResponse.json();
-        const accessToken = tokenData.access_token;
-
-        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-          headers: { Authorization: `Bearer ${accessToken}` }
+        // Verify the ID token with Google's API
+        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${id_token}` }
         });
-
         if (!userInfoResponse.ok) {
           const errorText = await userInfoResponse.text();
           console.error('User info fetch failed:', errorText);
@@ -52,7 +37,6 @@ module.exports = async (req, res) => {
 
         const userInfo = await userInfoResponse.json();
         const email = userInfo.email?.toLowerCase();
-
         if (!email) {
           console.error('No email in user info');
           throw new Error('No email found in user info');
@@ -62,10 +46,8 @@ module.exports = async (req, res) => {
         const authResponse = await fetch(`${APPS_SCRIPT_URL}?action=verifyUser&email=${encodeURIComponent(email)}`, {
           method: 'GET'
         });
-
         const authText = await authResponse.text();
         console.log('Apps Script verifyUser response:', authText);
-
         let authData;
         try {
           authData = JSON.parse(authText);
@@ -73,7 +55,6 @@ module.exports = async (req, res) => {
           console.error('JSON parse error for auth response:', e.message, authText);
           throw new Error(`Invalid JSON from Apps Script: ${authText}`);
         }
-
         if (authData.error) {
           console.error('Apps Script error:', authData.error);
           throw new Error(authData.error);
@@ -82,16 +63,15 @@ module.exports = async (req, res) => {
         if (authData.isAuthorized) {
           console.log('User authorized, setting cookie');
           res.setHeader('Set-Cookie', `session=${encodeURIComponent(email)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`);
-          res.redirect(302, 'https://latgaleszoodatabase.vercel.app/');
+          return res.status(200).json({ success: true });
         } else {
           console.log('User not authorized');
-          res.redirect(302, 'https://latgaleszoodatabase.vercel.app/?error=unauthorized');
+          return res.status(401).json({ error: 'User not authorized' });
         }
       } catch (error) {
         console.error('OAuth callback error:', error.message);
-        res.redirect(302, `https://latgaleszoodatabase.vercel.app/?error=${encodeURIComponent(error.message)}`);
+        return res.status(500).json({ error: error.message });
       }
-      return;
     }
 
     // Handle authentication check
@@ -102,16 +82,13 @@ module.exports = async (req, res) => {
         console.log('No session cookie, returning false');
         return res.status(200).json({ isAuthenticated: false });
       }
-
       try {
         console.log('Verifying session with Apps Script:', sessionCookie);
         const authResponse = await fetch(`${APPS_SCRIPT_URL}?action=verifyUser&email=${encodeURIComponent(sessionCookie)}`, {
           method: 'GET'
         });
-
         const authText = await authResponse.text();
         console.log('Apps Script auth check response:', authText);
-
         let authData;
         try {
           authData = JSON.parse(authText);
@@ -119,12 +96,10 @@ module.exports = async (req, res) => {
           console.error('JSON parse error for auth check:', e.message, authText);
           throw new Error(`Invalid JSON from Apps Script: ${authText}`);
         }
-
         if (authData.error) {
           console.error('Apps Script auth check error:', authData.error);
           throw new Error(authData.error);
         }
-
         console.log('Auth check result:', authData.isAuthorized);
         return res.status(200).json({ isAuthenticated: authData.isAuthorized, email: sessionCookie });
       } catch (error) {
