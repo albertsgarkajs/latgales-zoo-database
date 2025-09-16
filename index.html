@@ -8,12 +8,12 @@
     body {
       margin: 0;
       padding: 0;
-      overflow: hidden;
       font-family: 'Segoe UI', Verdana, sans-serif;
       background: #e9f5ee;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
+      position: relative;
     }
     #loadingOverlay {
       position: fixed;
@@ -76,7 +76,7 @@
     }
     #appIframe {
       width: 100vw;
-      height: calc(100vh - 40px); /* Adjust for nav bar height */
+      height: calc(100vh - 100px); /* Adjusted to make space for footer */
       border: none;
       display: none;
       margin-top: 40px; /* Space for nav bar */
@@ -121,6 +121,17 @@
     #signOutButton:active {
       background-color: #2E8B57; /* Match code.gs active */
     }
+    /* Footer styles */
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: gray;
+      padding: 10px 0;
+      background-color: #e9f5ee;
+      width: 100%;
+      position: relative;
+      z-index: 100;
+    }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -148,6 +159,11 @@
     src=""
     title="Latgales Zoodārza Dzīvnieku Datubāze"
   ></iframe>
+  
+  <footer>
+    © 2025, Developed and Designed by Alberts Garkajs
+  </footer>
+  
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     let userEmail = '';
@@ -283,8 +299,5 @@
       }
     };
   </script>
-  <footer style="text-align:center; font-size:12px; margin-top:20px; color:gray;">
-  © 2025, Developed and Designed by Alberts Garkajs
-</footer>  
 </body>
 </html>
