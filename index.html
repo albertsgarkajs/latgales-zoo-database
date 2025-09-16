@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Latgales zoodārza dzīvnieku datubāze</title>
+  <title>Latgales Zoodārza Dzīvnieku Datubāze</title>
   <style>
     body {
       margin: 0;
+      padding: 0;
+      overflow: hidden;
       font-family: 'Segoe UI', Verdana, sans-serif;
-      background-color: #e9f5ee;
-      color: #2f4f4f;
+      background: #e9f5ee;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
@@ -18,132 +19,118 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.8);
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.9);
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      z-index: 1000;
+      z-index: 3000;
       opacity: 1;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.5s ease-out;
     }
     #loadingOverlay.hidden {
       opacity: 0;
+      pointer-events: none;
+    }
+    #loadingOverlay img {
+      width: 150px;
+      height: auto;
+    }
+    #loadingOverlay p {
+      font-size: 18px;
+      color: #2E8B57;
+      margin-top: 10px;
     }
     #loginContainer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      flex-grow: 1;
-      padding: 20px;
+      background: #e9f5ee;
+      z-index: 2000;
     }
     #loginContainer.hidden {
       display: none;
     }
-    .login-box {
-      background: white;
-      padding: 40px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      max-width: 400px;
-      width: 100%;
-    }
-    .login-box h2 {
+    #loginContainer h2 {
       margin-top: 0;
       color: #2E8B57;
+      font-size: 24px;
     }
-    .btn-primary {
+    .g_id_signin {
+      margin: 20px 0;
+    }
+    #errorMessage {
+      color: red;
+      font-size: 16px;
+      margin-top: 20px;
+      text-align: center;
+      max-width: 80%;
+    }
+    #appIframe {
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      display: none;
+    }
+    .btn-retry {
       background-color: #2E8B57;
       color: white;
       border: none;
-      padding: 12px 20px;
+      padding: 10px 20px;
       border-radius: 4px;
       cursor: pointer;
       font-size: 16px;
-      margin-top: 20px;
+      margin-top: 10px;
     }
-    .btn-primary:hover {
+    .btn-retry:hover {
       background-color: #006400;
-    }
-    .btn-signout {
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
-      margin: 10px;
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      z-index: 1001;
-    }
-    .btn-signout:hover {
-      background-color: #c82333;
-    }
-    #errorMessage, #debugMessage {
-      margin-top: 20px;
-      color: red;
-      font-size: 14px;
-    }
-    #debugMessage {
-      color: #2f4f4f;
-      font-size: 12px;
-      word-break: break-word;
-    }
-    #appIframe {
-      width: 100%;
-      height: calc(100vh - 20px);
-      border: none;
-      display: none;
-      flex-grow: 1;
-      margin-top: 60px;
     }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <div id="loadingOverlay">
-    <div class="loading">Ielādē...</div>
+    <img src="https://cdn.dribbble.com/users/807926/screenshots/3629667/loadingtwo.gif" alt="Loading Animation">
+    <p>Ielādējam dzīvnieku datubāzi...</p>
   </div>
   <div id="loginContainer" class="hidden">
-    <div class="login-box">
-      <h2>Pierakstīties</h2>
-      <p>Lai piekļūtu Latgales zoodārza dzīvnieku datubāzei, lūdzu, pierakstieties ar savu Google kontu.</p>
-      <div id="g_id_onload"
-           data-client_id="342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleusercontent.com"
-           data-callback="handleCredentialResponse"
-           data-auto_prompt="false">
-      </div>
-      <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left"></div>
-      <div id="errorMessage"></div>
-      <div id="debugMessage"></div>
+    <h2>Pierakstieties Latgales Zoodārza Datubāzē</h2>
+    <div id="g_id_onload"
+         data-client_id="342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
     </div>
+    <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_black"></div>
+    <div id="errorMessage"></div>
+    <button class="btn-retry" onclick="window.location.reload()">Mēģināt vēlreiz</button>
   </div>
-  <button id="signoutButton" class="btn-signout" style="display: none;" onclick="signOut()">Iziet</button>
-  <iframe id="appIframe" src="https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec"></iframe>
+  <iframe
+    id="appIframe"
+    src="https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec"
+    title="Latgales Zoodārza Dzīvnieku Datubāze"
+  ></iframe>
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
-
     function logDebug(message) {
       console.log(message);
-      document.getElementById('debugMessage').textContent = message;
     }
-
     function showError(message) {
       console.error(message);
       document.getElementById('errorMessage').textContent = message;
       document.getElementById('loginContainer').classList.remove('hidden');
       document.getElementById('loadingOverlay').classList.add('hidden');
-      document.getElementById('signoutButton').style.display = 'none';
       setTimeout(() => {
         document.getElementById('loadingOverlay').style.display = 'none';
       }, 500);
     }
-
     function handleCredentialResponse(response) {
       logDebug('Google OAuth initiated: ' + JSON.stringify(response));
       if (response.credential) {
@@ -180,12 +167,11 @@
         showError('Kļūda: Nav derīgu Google autentifikācijas datu');
       }
     }
-
     async function signOut() {
       try {
         logDebug('Initiating sign-out');
         const response = await fetch('/api/auth/signout', {
-          method: 'POST',
+          method: 'GET',
           credentials: 'include'
         });
         const result = await response.json();
@@ -200,7 +186,6 @@
         showError(`Kļūda izrakstoties: ${error.message}`);
       }
     }
-
     window.onload = async () => {
       logDebug('Starting authentication check');
       try {
@@ -211,41 +196,38 @@
           window.history.replaceState({}, document.title, '/');
           return;
         }
-
         logDebug('Fetching /api/auth/check');
         const response = await fetch('/api/auth/check', {
           method: 'GET',
           credentials: 'include'
         });
         logDebug(`Auth check response status: ${response.status}`);
-
         if (response.status === 404) {
           throw new Error('Authentication endpoint not found. Please contact the administrator.');
         }
-
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
           const text = await response.text();
           throw new Error(`Invalid response from /api/auth/check: ${text}`);
         }
-
         const data = await response.json();
         logDebug('Auth check response data: ' + JSON.stringify(data));
-
         if (data.error) {
           showError(`Kļūda: ${data.error}`);
           return;
         }
-
         if (data.isAuthenticated) {
-          logDebug('User is authenticated, showing iframe and sign-out button');
+          logDebug('User is authenticated, showing iframe');
           document.getElementById('loginContainer').classList.add('hidden');
           document.getElementById('appIframe').style.display = 'block';
-          document.getElementById('signoutButton').style.display = 'block';
+          document.getElementById('loadingOverlay').classList.add('hidden');
+          setTimeout(() => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+          }, 500);
         } else {
           logDebug('User is not authenticated, showing login container');
           document.getElementById('loginContainer').classList.remove('hidden');
-          document.getElementById('signoutButton').style.display = 'none';
+          document.getElementById('appIframe').style.display = 'none';
           document.getElementById('loadingOverlay').classList.add('hidden');
           setTimeout(() => {
             document.getElementById('loadingOverlay').style.display = 'none';
@@ -254,7 +236,6 @@
       } catch (error) {
         showError(`Kļūda pārbaudot autentifikāciju: ${error.message}`);
       }
-
       const iframe = document.getElementById('appIframe');
       iframe.onload = () => {
         logDebug('Iframe loaded successfully');
@@ -266,11 +247,13 @@
       iframe.onerror = () => {
         showError('Kļūda ielādējot lietojumprogrammu. Lūdzu, mēģiniet vēlreiz.');
       };
-
-      if (document.getElementById('appIframe').style.display === 'block') {
-        logDebug('Reloading iframe to ensure data load');
-        iframe.src = iframe.src;
-      }
+      window.addEventListener('message', (event) => {
+        if (event.origin === 'https://script.google.com') {
+          if (event.data.action === 'signOut') {
+            signOut();
+          }
+        }
+      });
     };
   </script>
 </body>
