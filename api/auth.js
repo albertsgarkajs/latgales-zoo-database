@@ -115,13 +115,27 @@ module.exports = async (req, res) => {
       try {
         const sessionCookie = req.cookies?.session;
         console.log('Sign-out: Session cookie:', sessionCookie);
-        const logoutResponse = await fetch(`${APPS_SCRIPT_URL}?action=logout`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: sessionCookie })
-        });
-        const logoutText = await logoutResponse.text();
-        console.log('Apps Script logout response:', logoutText);
+        if (sessionCookie) {
+          console.log('Clearing authenticatedEmail in Apps Script');
+          const logoutResponse = await fetch(`${APPS_SCRIPT_URL}?action=logout`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: sessionCookie })
+          });
+          const logoutText = await logoutResponse.text();
+          console.log('Apps Script logout response:', logoutText);
+          let logoutData;
+          try {
+            logoutData = JSON.parse(logoutText);
+          } catch (e) {
+            console.error('JSON parse error for logout response:', e.message, logoutText);
+            throw new Error(`Invalid JSON from Apps Script: ${logoutText}`);
+          }
+          if (logoutData.error) {
+            console.error('Apps Script logout error:', logoutData.error);
+            throw new Error(logoutData.error);
+          }
+        }
         res.setHeader('Set-Cookie', 'session=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0');
         return res.status(200).json({ success: true });
       } catch (error) {
