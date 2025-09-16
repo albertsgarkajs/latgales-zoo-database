@@ -103,143 +103,162 @@
   ></iframe>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
 
-    function logDebug(message) {
-      console.log(message);
-      document.getElementById('debugMessage').textContent = message;
+  function logDebug(message) {
+    console.log(message);
+    document.getElementById('debugMessage').textContent = message;
+  }
+
+  function showError(message) {
+    console.error(message);
+    document.getElementById('errorMessage').textContent = message;
+    document.getElementById('loginContainer').classList.remove('hidden');
+    document.getElementById('loadingOverlay').classList.add('hidden');
+    setTimeout(() => {
+      document.getElementById('loadingOverlay').style.display = 'none';
+    }, 500);
+  }
+
+  function handleCredentialResponse(response) {
+    logDebug('Google OAuth initiated: ' + JSON.stringify(response));
+    console.log('Raw ID token:', response.credential);
+    if (response.credential) {
+      logDebug('Sending ID token to backend');
+      fetch('/api/auth/callback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id_token: response.credential })
+      })
+        .then(async (res) => {
+          const responseText = await res.text();
+          logDebug(`OAuth callback response: ${responseText}`);
+          if (res.ok) {
+            logDebug('OAuth callback successful, reloading page');
+            const lastReload = localStorage.getItem('lastReload');
+            const now = Date.now();
+            if (!lastReload || now - parseInt(lastReload) > 1000) {
+              localStorage.setItem('lastReload', now);
+              window.location.reload();
+            } else {
+              logDebug('Prevented excessive reload');
+              showError('Authentication succeeded but reload blocked to prevent loop');
+            }
+          } else {
+            const errorData = JSON.parse(responseText);
+            showError(`Kļūda: ${errorData.error || 'Neizdevās pierakstīties'}`);
+          }
+        })
+        .catch((error) => {
+          showError(`Kļūda OAuth atbildē: ${error.message}`);
+        });
+    } else {
+      showError('Kļūda: Nav derīgu Google autentifikācijas datu');
+    }
+  }
+
+  window.onload = async () => {
+    logDebug('Starting authentication check');
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const error = urlParams.get('error');
+      if (error) {
+        showError(`Kļūda no URL: ${decodeURIComponent(error)}`);
+        window.history.replaceState({}, document.title, '/');
+        return;
+      }
+
+      logDebug('Fetching /api/auth/check');
+      const response = await fetch('/api/auth/check', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      logDebug(`Auth check response status: ${response.status}`);
+
+      if (response.status === 404) {
+        throw new Error('Authentication endpoint not found. Please contact the administrator.');
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        throw new Error(`Invalid response from /api/auth/check: ${text}`);
+      }
+
+      const data = await response.json();
+      logDebug('Auth check response data: ' + JSON.stringify(data));
+
+      if (data.error) {
+        showError(`Kļūda: ${data.error}`);
+        return;
+      }
+
+      if (data.isAuthenticated) {
+        logDebug('User is authenticated, showing iframe');
+        document.getElementById('loginContainer').classList.add('hidden');
+        document.getElementById('appIframe').style.display = 'block';
+      } else {
+        logDebug('User is not authenticated, showing login container');
+        document.getElementById('loginContainer').classList.remove('hidden');
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        setTimeout(() => {
+          document.getElementById('loadingOverlay').style.display = 'none';
+        }, 500);
+      }
+    } catch (error) {
+      showError(`Kļūda pārbaudot autentifikāciju: ${error.message}`);
     }
 
-    function showError(message) {
-      console.error(message);
-      document.getElementById('errorMessage').textContent = message;
-      document.getElementById('loginContainer').classList.remove('hidden');
+    const iframe = document.getElementById('appIframe');
+    iframe.onload = () => {
+      logDebug('Iframe loaded successfully');
       document.getElementById('loadingOverlay').classList.add('hidden');
       setTimeout(() => {
         document.getElementById('loadingOverlay').style.display = 'none';
       }, 500);
-    }
-
-    function handleCredentialResponse(response) {
-      logDebug('Google OAuth initiated: ' + JSON.stringify(response));
-      if (response.credential) {
-        logDebug('Sending ID token to backend');
-        fetch('/api/auth/callback', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id_token: response.credential })
-        })
-          .then(async (res) => {
-            if (res.ok) {
-              logDebug('OAuth callback successful, reloading page');
-              window.location.reload();
-            } else {
-              const errorData = await res.json();
-              showError(`Kļūda: ${errorData.error || 'Neizdevās pierakstīties'}`);
-            }
-          })
-          .catch((error) => {
-            showError(`Kļūda OAuth atbildē: ${error.message}`);
-          });
-      } else {
-        showError('Kļūda: Nav derīgu Google autentifikācijas datu');
-      }
-    }
-
-    window.onload = async () => {
-      logDebug('Starting authentication check');
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const error = urlParams.get('error');
-        if (error) {
-          showError(`Kļūda no URL: ${decodeURIComponent(error)}`);
-          window.history.replaceState({}, document.title, '/');
-          return;
-        }
-
-        logDebug('Fetching /api/auth/check');
-        const response = await fetch('/api/auth/check', {
-          method: 'GET',
-          credentials: 'include'
-        });
-        logDebug(`Auth check response status: ${response.status}`);
-
-        if (response.status === 404) {
-          throw new Error('Authentication endpoint not found. Please contact the administrator.');
-        }
-
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          const text = await response.text();
-          throw new Error(`Invalid response from /api/auth/check: ${text}`);
-        }
-
-        const data = await response.json();
-        logDebug('Auth check response data: ' + JSON.stringify(data));
-
-        if (data.error) {
-          showError(`Kļūda: ${data.error}`);
-          return;
-        }
-
-        if (data.isAuthenticated) {
-          logDebug('User is authenticated, showing iframe');
-          document.getElementById('loginContainer').classList.add('hidden');
-          document.getElementById('appIframe').style.display = 'block';
-          document.getElementById('loadingOverlay').classList.add('hidden');
-          setTimeout(() => {
-            document.getElementById('loadingOverlay').style.display = 'none';
-          }, 500);
-        } else {
-          logDebug('User is not authenticated, showing login container');
-          document.getElementById('loginContainer').classList.remove('hidden');
-          document.getElementById('loadingOverlay').classList.add('hidden');
-          setTimeout(() => {
-            document.getElementById('loadingOverlay').style.display = 'none';
-          }, 500);
-        }
-      } catch (error) {
-        showError(`Kļūda pārbaudot autentifikāciju: ${error.message}`);
-      }
-
-      const iframe = document.getElementById('appIframe');
-      iframe.onload = () => {
-        logDebug('Iframe loaded successfully');
-        if (document.getElementById('appIframe').style.display === 'block') {
-          document.getElementById('loadingOverlay').classList.add('hidden');
-          setTimeout(() => {
-            document.getElementById('loadingOverlay').style.display = 'none';
-          }, 500);
-        }
-      };
-      iframe.onerror = () => {
-        showError('Kļūda ielādējot lietojumprogrammu. Lūdzu, mēģiniet vēlreiz.');
-      };
-
-      window.addEventListener('message', (event) => {
-        if (event.origin !== 'https://script.google.com') {
-          logDebug('Invalid message origin: ' + event.origin);
-          return;
-        }
-        if (event.data.action === 'signOut') {
-          logDebug('Received signOut message from iframe');
-          signOut();
-        }
-      });
+    };
+    iframe.onerror = () => {
+      showError('Kļūda ielādējot lietojumprogrammu. Lūdzu, mēģiniet vēlreiz.');
     };
 
-    async function signOut() {
-      try {
-        logDebug('Initiating sign-out');
-        await fetch('/api/auth/signout', {
-          method: 'POST',
-          credentials: 'include'
-        });
-        window.location.reload();
-      } catch (error) {
-        showError(`Kļūda izrakstoties: ${error.message}`);
-      }
+    if (document.getElementById('appIframe').style.display === 'block') {
+      logDebug('Reloading iframe to ensure data load');
+      iframe.src = iframe.src;
     }
-  </script>
+
+    window.addEventListener('message', (event) => {
+      logDebug('Received message: ' + JSON.stringify(event.data) + ' from origin: ' + event.origin);
+      if (event.origin !== 'https://script.google.com') {
+        logDebug('Invalid message origin: ' + event.origin);
+        return;
+      }
+      if (event.data.action === 'signOut') {
+        logDebug('Received signOut message from iframe');
+        signOut();
+      }
+    });
+  };
+
+  async function signOut() {
+    try {
+      logDebug('Initiating sign-out');
+      const response = await fetch('/api/auth/signout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      const result = await response.json();
+      logDebug('Sign-out response: ' + JSON.stringify(result));
+      if (response.ok) {
+        localStorage.removeItem('lastReload');
+        window.location.reload();
+      } else {
+        showError(`Kļūda izrakstoties: ${result.error || 'Neizdevās izrakstīties'}`);
+      }
+    } catch (error) {
+      showError(`Kļūda izrakstoties: ${error.message}`);
+    }
+  }
+</script>
 </body>
 </html>
