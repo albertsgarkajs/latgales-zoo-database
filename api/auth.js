@@ -8,7 +8,6 @@ module.exports = async (req, res) => {
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     const CLIENT_ID = '342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleusercontent.com';
     const CLIENT_SECRET = process.env.CLIENT_SECRET;
-    const REDIRECT_URI = 'https://latgaleszoodatabase.vercel.app/api/auth/callback';
 
     if (!CLIENT_SECRET) {
       console.error('CLIENT_SECRET is missing');
@@ -63,7 +62,7 @@ module.exports = async (req, res) => {
         if (authData.isAuthorized) {
           console.log('User authorized, setting cookie');
           res.setHeader('Set-Cookie', `session=${encodeURIComponent(email)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`);
-          return res.status(200).json({ success: true });
+          return res.status(200).json({ success: true, email });
         } else {
           console.log('User not authorized');
           return res.status(401).json({ error: 'User not authorized' });
