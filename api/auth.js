@@ -3,16 +3,9 @@ module.exports = async (req, res) => {
     console.log('=== API Function Invoked ===');
     console.log('URL:', req.url);
     console.log('Method:', req.method);
-    console.log('CLIENT_SECRET available:', !!process.env.CLIENT_SECRET ? 'Yes' : 'No - This could cause failure');
 
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     const CLIENT_ID = '342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleusercontent.com';
-    const CLIENT_SECRET = process.env.CLIENT_SECRET;
-
-    if (!CLIENT_SECRET) {
-      console.error('CLIENT_SECRET is missing');
-      return res.status(500).json({ error: 'Missing CLIENT_SECRET environment variable' });
-    }
 
     // Handle OAuth callback with ID token
     if (req.method === 'POST' && req.url.includes('/api/auth/callback')) {
@@ -24,21 +17,29 @@ module.exports = async (req, res) => {
           throw new Error('No ID token provided');
         }
 
-        // Verify the ID token with Google's API
-        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${id_token}` }
-        });
-        if (!userInfoResponse.ok) {
-          const errorText = await userInfoResponse.text();
-          console.error('User info fetch failed:', errorText);
-          throw new Error(`Failed to fetch user info: ${errorText}`);
+        // Verify the ID token with Google's tokeninfo endpoint
+        const tokenInfoResponse = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`);
+        if (!tokenInfoResponse.ok) {
+          const errorText = await tokenInfoResponse.text();
+          console.error('Token info fetch failed:', errorText);
+          throw new Error(`Failed to verify ID token: ${errorText}`);
         }
 
-        const userInfo = await userInfoResponse.json();
-        const email = userInfo.email?.toLowerCase();
+        const tokenInfo = await tokenInfoResponse.json();
+        console.log('Token info:', tokenInfo);
+        if (tokenInfo.aud !== CLIENT_ID) {
+          console.error('Invalid audience in ID token:', tokenInfo.aud);
+          throw new Error('Invalid audience in ID token');
+        }
+        if (!tokenInfo.email_verified) {
+          console.error('Email not verified in ID token');
+          throw new Error('Email not verified');
+        }
+
+        const email = tokenInfo.email?.toLowerCase();
         if (!email) {
-          console.error('No email in user info');
-          throw new Error('No email found in user info');
+          console.error('No email in token info');
+          throw new Error('No email found in token info');
         }
 
         console.log('Verifying user with Apps Script:', email);
