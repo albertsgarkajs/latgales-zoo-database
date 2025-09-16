@@ -76,7 +76,7 @@
     <img src="https://cdn.dribbble.com/users/807926/screenshots/3629667/loadingtwo.gif" alt="Loading Animation">
     <p>Ielādējam dzīvnieku datubāzi...</p>
   </div>
-  <div id="loginContainer">
+  <div id="loginContainer" class="hidden">
     <h2>Pierakstieties Latgales Zoodārza Datubāzē</h2>
     <div id="g_id_onload"
          data-client_id="342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleusercontent.com"
@@ -85,6 +85,7 @@
     </div>
     <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_black"></div>
     <div id="errorMessage"></div>
+    <button onclick="window.location.reload()" style="margin-top: 10px;">Mēģināt vēlreiz</button>
   </div>
   <iframe
     id="appIframe"
@@ -105,14 +106,22 @@
         const urlParams = new URLSearchParams(window.location.search);
         const error = urlParams.get('error');
         if (error) {
+          console.log('URL error parameter:', error);
           document.getElementById('errorMessage').textContent = `Kļūda: ${decodeURIComponent(error)}`;
           window.history.replaceState({}, document.title, '/');
+          document.getElementById('loginContainer').classList.remove('hidden');
+          document.getElementById('loadingOverlay').classList.add('hidden');
+          setTimeout(() => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+          }, 500);
+          return;
         }
 
         const response = await fetch('/api/auth/check', {
           method: 'GET',
           credentials: 'include'
         });
+        console.log('Auth check response status:', response.status);
 
         if (response.status === 404) {
           throw new Error('Authentication endpoint not found. Please contact the administrator.');
@@ -125,23 +134,39 @@
         }
 
         const data = await response.json();
-        console.log('Auth check response:', data);
+        console.log('Auth check response data:', data);
 
         if (data.error) {
+          console.log('Server returned error:', data.error);
           document.getElementById('errorMessage').textContent = `Kļūda: ${data.error}`;
+          document.getElementById('loginContainer').classList.remove('hidden');
+          document.getElementById('loadingOverlay').classList.add('hidden');
+          setTimeout(() => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+          }, 500);
+          return;
         }
 
         if (data.isAuthenticated) {
+          console.log('User is authenticated, showing iframe');
           document.getElementById('loginContainer').classList.add('hidden');
           document.getElementById('appIframe').style.display = 'block';
           document.getElementById('loadingOverlay').classList.add('hidden');
           setTimeout(() => {
             document.getElementById('loadingOverlay').style.display = 'none';
           }, 500);
+        } else {
+          console.log('User is not authenticated, showing login container');
+          document.getElementById('loginContainer').classList.remove('hidden');
+          document.getElementById('loadingOverlay').classList.add('hidden');
+          setTimeout(() => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+          }, 500);
         }
       } catch (error) {
-        console.error('Error checking auth:', error);
+        console.error('Error checking auth:', error.message);
         document.getElementById('errorMessage').textContent = `Kļūda pārbaudot autentifikāciju: ${error.message}`;
+        document.getElementById('loginContainer').classList.remove('hidden');
         document.getElementById('loadingOverlay').classList.add('hidden');
         setTimeout(() => {
           document.getElementById('loadingOverlay').style.display = 'none';
@@ -161,6 +186,7 @@
       iframe.onerror = () => {
         console.error('Iframe failed to load');
         document.getElementById('errorMessage').textContent = 'Kļūda ielādējot lietojumprogrammu. Lūdzu, mēģiniet vēlreiz.';
+        document.getElementById('loginContainer').classList.remove('hidden');
         document.getElementById('loadingOverlay').classList.add('hidden');
         setTimeout(() => {
           document.getElementById('loadingOverlay').style.display = 'none';
@@ -170,6 +196,7 @@
       window.addEventListener('message', (event) => {
         if (event.origin !== 'https://script.google.com') return;
         if (event.data.action === 'signOut') {
+          console.log('Received signOut message from iframe');
           signOut();
         }
       });
@@ -177,14 +204,15 @@
 
     async function signOut() {
       try {
+        console.log('Initiating sign-out');
         await fetch('/api/auth/signout', {
           method: 'POST',
           credentials: 'include'
         });
         window.location.reload();
       } catch (error) {
-        console.error('Sign-out error:', error);
-        document.getElementById('errorMessage').textContent = 'Kļūda izrakstoties: ' + error.message;
+        console.error('Sign-out error:', error.message);
+        document.getElementById('errorMessage').textContent = `Kļūda izrakstoties: ${error.message}`;
       }
     }
   </script>
