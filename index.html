@@ -114,11 +114,12 @@
   </div>
   <iframe
     id="appIframe"
-    src="https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec"
+    src=""
     title="Latgales Zoodārza Dzīvnieku Datubāze"
   ></iframe>
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
+    let userEmail = '';
     function logDebug(message) {
       console.log(message);
     }
@@ -145,7 +146,9 @@
             const responseText = await res.text();
             logDebug(`OAuth callback response: ${responseText}`);
             if (res.ok) {
-              logDebug('OAuth callback successful, reloading page');
+              const data = JSON.parse(responseText);
+              userEmail = data.email;
+              logDebug('OAuth callback successful, email: ' + userEmail);
               const lastReload = localStorage.getItem('lastReload');
               const now = Date.now();
               if (!lastReload || now - parseInt(lastReload) > 1000) {
@@ -178,6 +181,7 @@
         logDebug('Sign-out response: ' + JSON.stringify(result));
         if (response.ok) {
           localStorage.removeItem('lastReload');
+          userEmail = '';
           window.location.reload();
         } else {
           showError(`Kļūda izrakstoties: ${result.error || 'Neizdevās izrakstīties'}`);
@@ -216,10 +220,13 @@
           showError(`Kļūda: ${data.error}`);
           return;
         }
+        const iframe = document.getElementById('appIframe');
         if (data.isAuthenticated) {
-          logDebug('User is authenticated, showing iframe');
+          userEmail = data.email;
+          logDebug('User is authenticated, email: ' + userEmail + ', showing iframe');
           document.getElementById('loginContainer').classList.add('hidden');
-          document.getElementById('appIframe').style.display = 'block';
+          iframe.src = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`;
+          iframe.style.display = 'block';
           document.getElementById('loadingOverlay').classList.add('hidden');
           setTimeout(() => {
             document.getElementById('loadingOverlay').style.display = 'none';
@@ -227,33 +234,32 @@
         } else {
           logDebug('User is not authenticated, showing login container');
           document.getElementById('loginContainer').classList.remove('hidden');
-          document.getElementById('appIframe').style.display = 'none';
+          iframe.style.display = 'none';
           document.getElementById('loadingOverlay').classList.add('hidden');
           setTimeout(() => {
             document.getElementById('loadingOverlay').style.display = 'none';
           }, 500);
         }
+        iframe.onload = () => {
+          logDebug('Iframe loaded successfully');
+          document.getElementById('loadingOverlay').classList.add('hidden');
+          setTimeout(() => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+          }, 500);
+        };
+        iframe.onerror = () => {
+          showError('Kļūda ielādējot lietojumprogrammu. Lūdzu, mēģiniet vēlreiz.');
+        };
+        window.addEventListener('message', (event) => {
+          if (event.origin === 'https://script.google.com') {
+            if (event.data.action === 'signOut') {
+              signOut();
+            }
+          }
+        });
       } catch (error) {
         showError(`Kļūda pārbaudot autentifikāciju: ${error.message}`);
       }
-      const iframe = document.getElementById('appIframe');
-      iframe.onload = () => {
-        logDebug('Iframe loaded successfully');
-        document.getElementById('loadingOverlay').classList.add('hidden');
-        setTimeout(() => {
-          document.getElementById('loadingOverlay').style.display = 'none';
-        }, 500);
-      };
-      iframe.onerror = () => {
-        showError('Kļūda ielādējot lietojumprogrammu. Lūdzu, mēģiniet vēlreiz.');
-      };
-      window.addEventListener('message', (event) => {
-        if (event.origin === 'https://script.google.com') {
-          if (event.data.action === 'signOut') {
-            signOut();
-          }
-        }
-      });
     };
   </script>
 </body>
