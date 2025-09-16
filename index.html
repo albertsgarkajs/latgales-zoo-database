@@ -44,7 +44,7 @@
       width: 100vw;
       height: 100vh;
       border: none;
-      display: none; /* Hidden until authenticated */
+      display: none;
     }
     #loginContainer {
       position: fixed;
@@ -66,6 +66,8 @@
       color: red;
       font-size: 16px;
       margin-top: 20px;
+      text-align: center;
+      max-width: 80%;
     }
   </style>
 </head>
@@ -93,22 +95,38 @@
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
 
-    // Handle Google OAuth callback (not used directly since server handles it)
     function handleCredentialResponse(response) {
       console.log('Google OAuth initiated:', response);
-      // The actual callback is handled by the serverless function
     }
 
-    // Check authentication status on page load
     window.onload = async () => {
       console.log('Checking authentication status');
       try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('error');
+        if (error) {
+          document.getElementById('errorMessage').textContent = `Kļūda: ${decodeURIComponent(error)}`;
+          window.history.replaceState({}, document.title, '/');
+        }
+
         const response = await fetch('/api/auth/check', {
           method: 'GET',
           credentials: 'include'
         });
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          throw new Error(`Invalid response from /api/auth/check: ${text}`);
+        }
+
         const data = await response.json();
         console.log('Auth check response:', data);
+
+        if (data.error) {
+          document.getElementById('errorMessage').textContent = `Kļūda: ${data.error}`;
+        }
+
         if (data.isAuthenticated) {
           document.getElementById('loginContainer').classList.add('hidden');
           document.getElementById('appIframe').style.display = 'block';
@@ -119,14 +137,13 @@
         }
       } catch (error) {
         console.error('Error checking auth:', error);
-        document.getElementById('errorMessage').textContent = 'Kļūda pārbaudot autentifikāciju: ' + error.message;
+        document.getElementById('errorMessage').textContent = `Kļūda pārbaudot autentifikāciju: ${error.message}`;
         document.getElementById('loadingOverlay').classList.add('hidden');
         setTimeout(() => {
           document.getElementById('loadingOverlay').style.display = 'none';
         }, 500);
       }
 
-      // Handle iframe loading
       const iframe = document.getElementById('appIframe');
       iframe.onload = () => {
         console.log('Iframe loaded successfully');
@@ -144,9 +161,15 @@
           document.getElementById('loadingOverlay').style.display = 'none';
         }, 500);
       };
+
+      window.addEventListener('message', (event) => {
+        if (event.origin !== 'https://script.google.com') return;
+        if (event.data.action === 'signOut') {
+          signOut();
+        }
+      });
     };
 
-    // Sign-out function
     async function signOut() {
       try {
         await fetch('/api/auth/signout', {
