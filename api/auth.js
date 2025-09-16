@@ -127,3 +127,27 @@ module.exports = async (req, res) => {
 
   res.status(400).json({ error: 'Invalid request' });
 };
+const fetch = require('node-fetch');
+
+module.exports = async (req, res) => {
+  console.log('=== API Function Invoked ===');
+  console.log('URL:', req.url);
+  console.log('Method:', req.method);
+  console.log('CLIENT_SECRET:', process.env.CLIENT_SECRET ? 'set' : 'missing');
+
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
+  const CLIENT_ID = '342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleusercontent.com';
+  const CLIENT_SECRET = process.env.CLIENT_SECRET;
+  const REDIRECT_URI = 'https://latgaleszoodatabase.vercel.app/api/auth/callback';
+
+  if (req.url.includes('/api/auth/check')) {
+    console.log('Handling /api/auth/check');
+    const sessionCookie = req.cookies?.session;
+    if (!sessionCookie) {
+      console.log('No session cookie, returning isAuthenticated: false');
+      return res.status(200).json({ isAuthenticated: false });
+    }
+    // ... rest of the code
+  }
+  // ... rest of the code
+};
