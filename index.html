@@ -76,9 +76,10 @@
     }
     #appIframe {
       width: 100vw;
-      height: 100vh;
+      height: calc(100vh - 40px); /* Adjust for nav bar height */
       border: none;
       display: none;
+      margin-top: 40px; /* Space for nav bar */
     }
     .btn-retry {
       background-color: #2E8B57;
@@ -93,20 +94,32 @@
     .btn-retry:hover {
       background-color: #006400;
     }
-    /* Invisible overlay for Iziet button */
-    #signOutOverlay {
+    /* Navigation bar for Iziet button */
+    #parentNav {
       position: fixed;
-      top: 70px; /* Matches nav's sticky top position in code.gs */
-      right: 10px; /* Approximate right side of nav */
-      width: 80px; /* Approximate width of Iziet button */
-      height: 40px; /* Approximate height of nav button */
-      z-index: 1001; /* Above iframe (z-index 1000 for header, 999 for nav) */
-      cursor: pointer;
-      opacity: 0; /* Invisible but clickable */
+      top: 70px; /* Match code.gs nav position */
+      right: 0;
+      background-color: #228B22; /* Match code.gs nav */
+      z-index: 1000; /* Above iframe (z-index 999 in code.gs) */
+      padding: 12px 18px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.25); /* Match code.gs */
     }
-    #signOutOverlay:hover {
-      opacity: 0.1; /* Slight feedback for debugging, adjust if needed */
-      background-color: #32CD32; /* Matches nav button hover */
+    #signOutButton {
+      background: none;
+      border: none;
+      color: white;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: background 0.2s, transform 0.2s;
+    }
+    #signOutButton:hover {
+      background-color: #32CD32; /* Match code.gs hover */
+      transform: translateY(-2px);
+    }
+    #signOutButton:active {
+      background-color: #2E8B57; /* Match code.gs active */
     }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -127,12 +140,14 @@
     <div id="errorMessage"></div>
     <button class="btn-retry" onclick="window.location.reload()">Mēģināt vēlreiz</button>
   </div>
+  <div id="parentNav" style="display: none;">
+    <button id="signOutButton" onclick="signOut()">Iziet</button>
+  </div>
   <iframe
     id="appIframe"
     src=""
     title="Latgales Zoodārza Dzīvnieku Datubāze"
   ></iframe>
-  <div id="signOutOverlay" title="Iziet"></div>
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     let userEmail = '';
@@ -187,7 +202,7 @@
     }
     async function signOut() {
       try {
-        logDebug('Initiating server-side sign-out from overlay');
+        logDebug('Initiating server-side sign-out');
         const response = await fetch('/api/auth/signout', {
           method: 'GET',
           credentials: 'include'
@@ -240,6 +255,7 @@
           userEmail = data.email;
           logDebug('User is authenticated, email: ' + userEmail + ', showing iframe');
           document.getElementById('loginContainer').classList.add('hidden');
+          document.getElementById('parentNav').style.display = 'block';
           iframe.src = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&section=Zīdītāji`;
           iframe.style.display = 'block';
           iframe.onload = () => {
@@ -248,9 +264,6 @@
             setTimeout(() => {
               document.getElementById('loadingOverlay').style.display = 'none';
             }, 500);
-            // Adjust signOutOverlay position after iframe loads
-            const signOutOverlay = document.getElementById('signOutOverlay');
-            signOutOverlay.onclick = signOut;
           };
           iframe.onerror = () => {
             showError('Kļūda ielādējot lietojumprogrammu. Lūdzu, mēģiniet vēlreiz.');
@@ -258,6 +271,7 @@
         } else {
           logDebug('User is not authenticated, showing login container');
           document.getElementById('loginContainer').classList.remove('hidden');
+          document.getElementById('parentNav').style.display = 'none';
           iframe.style.display = 'none';
           document.getElementById('loadingOverlay').classList.add('hidden');
           setTimeout(() => {
