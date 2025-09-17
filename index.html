@@ -12,8 +12,8 @@
       background: #e9f5ee;
       display: flex;
       flex-direction: column;
-      min-height: 100vh; /* Allow content to fit viewport */
-      overflow: hidden; /* Prevent scrollbars */
+      min-height: 100vh;
+      overflow: hidden;
     }
     #loadingOverlay {
       position: fixed;
@@ -22,13 +22,16 @@
       width: 100%;
       height: 100vh;
       background: rgba(255, 255, 255, 0.9);
-      display: flex;
+      display: none;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 3000;
       opacity: 1;
       transition: opacity 0.5s ease-out;
+    }
+    #loadingOverlay.visible {
+      display: flex;
     }
     #loadingOverlay.hidden {
       opacity: 0;
@@ -75,12 +78,12 @@
       max-width: 80%;
     }
     #appIframe {
-      width: 100%; /* Fit to parent width */
-      height: calc(100vh - 40px - 40px); /* Reserve space for nav and footer */
+      width: 100%;
+      height: calc(100vh - 40px - 40px);
       border: none;
       display: none;
-      margin-top: 40px; /* Space for nav */
-      flex-grow: 1; /* Fill available space */
+      margin-top: 40px;
+      flex-grow: 1;
     }
     .btn-retry {
       background-color: #2E8B57;
@@ -97,13 +100,13 @@
     }
     #parentNav {
       position: fixed;
-      top: 40px; /* Align with iframe’s nav */
-      right: 20px; /* Offset to avoid scrollbar */
+      top: 40px;
+      right: 20px;
       background-color: #228B22;
-      z-index: 1001; /* Above iframe */
+      z-index: 1001;
       padding: 12px 18px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.25);
-      display: none; /* Hidden unless injection fails */
+      display: none;
     }
     #signOutButton {
       background: none;
@@ -130,19 +133,19 @@
       padding: 10px 0;
       width: 100%;
       position: relative;
-      z-index: 998; /* Below iframe */
+      z-index: 998;
       background: #e9f5ee;
-      flex-shrink: 0; /* Prevent footer from shrinking */
+      flex-shrink: 0;
     }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-  <div id="loadingOverlay">
+  <div id="loadingOverlay" class="hidden">
     <img src="https://cdn.dribbble.com/users/807926/screenshots/3629667/loadingtwo.gif" alt="Loading Animation">
     <p>Ielādējam dzīvnieku datubāzi...</p>
   </div>
-  <div id="loginContainer" class="hidden">
+  <div id="loginContainer">
     <h2>Pierakstieties Latgales Zoodārza Datubāzē</h2>
     <div id="g_id_onload"
          data-client_id="342636078901-tgt5o0dhg3icilehe8u26rhm8toiv375.apps.googleusercontent.com"
@@ -173,14 +176,15 @@
       document.getElementById('errorMessage').textContent = message;
       document.getElementById('loginContainer').classList.remove('hidden');
       document.getElementById('loadingOverlay').classList.add('hidden');
-      setTimeout(() => {
-        document.getElementById('loadingOverlay').style.display = 'none';
-      }, 500);
+      document.getElementById('loadingOverlay').style.display = 'none';
     }
     function handleCredentialResponse(response) {
       logDebug('Google OAuth initiated: ' + JSON.stringify(response));
       if (response.credential) {
         logDebug('Sending ID token to backend');
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+        document.getElementById('loginContainer').classList.add('hidden');
         fetch('/api/auth/callback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -237,21 +241,24 @@
           userEmail = '';
           document.getElementById('parentNav').style.display = 'none';
           document.getElementById('appIframe').style.display = 'none';
+          document.getElementById('appIframe').src = '';
           document.getElementById('loginContainer').classList.remove('hidden');
-          window.location.reload();
+          document.getElementById('loadingOverlay').classList.add('hidden');
+          document.getElementById('loadingOverlay').style.display = 'none';
         } else {
           throw new Error('Sign-out failed: ' + (result.error || 'Unknown error'));
         }
       } catch (error) {
         logDebug('Sign-out error: ' + error.message);
         showError('Kļūda izrakstoties: ' + error.message);
-        // Fallback: Clear local state and redirect to login
         localStorage.removeItem('lastReload');
         userEmail = '';
         document.getElementById('parentNav').style.display = 'none';
         document.getElementById('appIframe').style.display = 'none';
+        document.getElementById('appIframe').src = '';
         document.getElementById('loginContainer').classList.remove('hidden');
-        window.location.reload();
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        document.getElementById('loadingOverlay').style.display = 'none';
       }
     }
     function injectSignOutButton(iframe) {
@@ -272,7 +279,6 @@
         signOutButton.id = 'signOutButton';
         signOutButton.textContent = 'Iziet';
         signOutButton.onclick = () => window.parent.signOut();
-        // Apply inline styles to match nav buttons
         signOutButton.style.background = 'none';
         signOutButton.style.border = 'none';
         signOutButton.style.color = 'white';
@@ -296,14 +302,11 @@
         signOutButton.onmouseup = () => {
           signOutButton.style.backgroundColor = '#32CD32';
         };
-        // Insert after Jauns ieraksts button
         newEntryButton.insertAdjacentElement('afterend', signOutButton);
-        // Hide parentNav since injection succeeded
         document.getElementById('parentNav').style.display = 'none';
         logDebug('Successfully injected Iziet button into iframe nav');
       } catch (error) {
         console.error('Failed to inject Iziet button: ' + error.message);
-        // Fallback: Show parentNav
         document.getElementById('parentNav').style.display = 'block';
         logDebug('Falling back to parentNav for Iziet button');
       }
@@ -344,6 +347,8 @@
           userEmail = data.email;
           logDebug('User is authenticated, email: ' + userEmail + ', showing iframe');
           document.getElementById('loginContainer').classList.add('hidden');
+          document.getElementById('loadingOverlay').style.display = 'flex';
+          document.getElementById('loadingOverlay').classList.remove('hidden');
           iframe.src = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&section=Zīdītāji`;
           iframe.style.display = 'block';
           iframe.onload = () => {
@@ -363,9 +368,7 @@
           document.getElementById('parentNav').style.display = 'none';
           iframe.style.display = 'none';
           document.getElementById('loadingOverlay').classList.add('hidden');
-          setTimeout(() => {
-            document.getElementById('loadingOverlay').style.display = 'none';
-          }, 500);
+          document.getElementById('loadingOverlay').style.display = 'none';
         }
       } catch (error) {
         showError('Kļūda pārbaudot autentifikāciju: ' + error.message);
