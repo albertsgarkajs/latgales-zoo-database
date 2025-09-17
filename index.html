@@ -136,9 +136,10 @@
       z-index: 998;
       background: #e9f5ee;
       flex-shrink: 0;
+      display: block; /* Ensure footer is visible by default */
     }
     #loginContainer.hidden ~ footer {
-      display: none;
+      display: none; /* Hide footer when login container is hidden */
     }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
