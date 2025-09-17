@@ -8,7 +8,6 @@
     body {
       margin: 0;
       padding: 0;
-      overflow: hidden;
       font-family: 'Segoe UI', Verdana, sans-serif;
       background: #e9f5ee;
       display: flex;
@@ -76,10 +75,11 @@
     }
     #appIframe {
       width: 100vw;
-      height: calc(100vh - 40px); /* Adjust for nav bar height */
+      height: calc(100vh - 40px - 40px); /* Subtract nav and footer height */
       border: none;
       display: none;
-      margin-top: 40px; /* Space for nav bar */
+      margin-top: 40px;
+      flex-grow: 1;
     }
     .btn-retry {
       background-color: #2E8B57;
@@ -94,15 +94,15 @@
     .btn-retry:hover {
       background-color: #006400;
     }
-    /* Navigation bar for Iziet button */
     #parentNav {
       position: fixed;
-      top: 70px; /* Match code.gs nav position */
-      right: 0;
-      background-color: #228B22; /* Match code.gs nav */
-      z-index: 1000; /* Above iframe (z-index 999 in code.gs) */
+      top: 40px;
+      right: 20px;
+      background-color: #228B22;
+      z-index: 1001;
       padding: 12px 18px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.25); /* Match code.gs */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+      display: none;
     }
     #signOutButton {
       background: none;
@@ -113,13 +113,24 @@
       font-size: 16px;
       font-weight: bold;
       transition: background 0.2s, transform 0.2s;
+      line-height: 1.5;
     }
     #signOutButton:hover {
-      background-color: #32CD32; /* Match code.gs hover */
+      background-color: #32CD32;
       transform: translateY(-2px);
     }
     #signOutButton:active {
-      background-color: #2E8B57; /* Match code.gs active */
+      background-color: #2E8B57;
+    }
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: gray;
+      padding: 10px 0;
+      width: 100%;
+      position: relative;
+      z-index: 1000;
+      background: #e9f5ee;
     }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -140,7 +151,7 @@
     <div id="errorMessage"></div>
     <button class="btn-retry" onclick="window.location.reload()">Mēģināt vēlreiz</button>
   </div>
-  <div id="parentNav" style="display: none;">
+  <div id="parentNav">
     <button id="signOutButton" onclick="signOut()">Iziet</button>
   </div>
   <iframe
@@ -148,6 +159,7 @@
     src=""
     title="Latgales Zoodārza Dzīvnieku Datubāze"
   ></iframe>
+  <footer>© 2025, Developed and Designed by Alberts Garkajs</footer>
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     let userEmail = '';
@@ -283,8 +295,5 @@
       }
     };
   </script>
-  <footer style="text-align:center; font-size:12px; margin-top:20px; color:gray;">
-  © 2025, Developed and Designed by Alberts Garkajs
-</footer>  
 </body>
 </html>
