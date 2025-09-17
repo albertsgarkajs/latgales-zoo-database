@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Latgales Zoodārza Dzīvnieku Datubāze</title>
   <style>
-    body {
+    html, body {
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', Verdana, sans-serif;
       background: #e9f5ee;
       display: flex;
       flex-direction: column;
-      height: 100vh; /* Fit to viewport height */
+      min-height: 100vh; /* Allow content to fit viewport */
       overflow: hidden; /* Prevent scrollbars */
     }
     #loadingOverlay {
@@ -76,10 +76,11 @@
     }
     #appIframe {
       width: 100%; /* Fit to parent width */
-      height: calc(100vh - 40px); /* Fill viewport minus nav */
+      height: calc(100vh - 40px - 40px); /* Reserve space for nav and footer */
       border: none;
       display: none;
       margin-top: 40px; /* Space for nav */
+      flex-grow: 1; /* Fill available space */
     }
     .btn-retry {
       background-color: #2E8B57;
@@ -131,6 +132,7 @@
       position: relative;
       z-index: 998; /* Below iframe */
       background: #e9f5ee;
+      flex-shrink: 0; /* Prevent footer from shrinking */
     }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -217,19 +219,39 @@
         logDebug('Initiating server-side sign-out');
         const response = await fetch('/api/auth/signout', {
           method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include'
         });
-        const result = await response.json();
-        logDebug('Sign-out response: ' + JSON.stringify(result));
+        logDebug('Sign-out response status: ' + response.status);
+        const responseText = await response.text();
+        logDebug('Sign-out response text: ' + responseText);
+        let result;
+        try {
+          result = JSON.parse(responseText);
+        } catch (e) {
+          throw new Error('Invalid JSON response from /api/auth/signout: ' + responseText);
+        }
         if (response.ok) {
+          logDebug('Sign-out successful: ' + JSON.stringify(result));
           localStorage.removeItem('lastReload');
           userEmail = '';
+          document.getElementById('parentNav').style.display = 'none';
+          document.getElementById('appIframe').style.display = 'none';
+          document.getElementById('loginContainer').classList.remove('hidden');
           window.location.reload();
         } else {
-          showError('Kļūda izrakstoties: ' + (result.error || 'Neizdevās izrakstīties'));
+          throw new Error('Sign-out failed: ' + (result.error || 'Unknown error'));
         }
       } catch (error) {
+        logDebug('Sign-out error: ' + error.message);
         showError('Kļūda izrakstoties: ' + error.message);
+        // Fallback: Clear local state and redirect to login
+        localStorage.removeItem('lastReload');
+        userEmail = '';
+        document.getElementById('parentNav').style.display = 'none';
+        document.getElementById('appIframe').style.display = 'none';
+        document.getElementById('loginContainer').classList.remove('hidden');
+        window.location.reload();
       }
     }
     function injectSignOutButton(iframe) {
@@ -299,6 +321,7 @@
         logDebug('Fetching /api/auth/check');
         const response = await fetch('/api/auth/check', {
           method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include'
         });
         logDebug('Auth check response status: ' + response.status);
