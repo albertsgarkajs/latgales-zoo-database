@@ -133,6 +133,16 @@
       padding: 10px 0;
       margin-top: 20px;
     }
+    .footer-text a {
+      color: gray;
+      text-decoration: none;
+    }
+    .footer-text a:hover {
+      text-decoration: underline;
+    }
+    .license-text {
+      margin-top: 5px;
+    }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -151,7 +161,18 @@
     <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_black"></div>
     <div id="errorMessage"></div>
     <button class="btn-retry" onclick="window.location.reload()">Mēģināt vēlreiz</button>
-    <div class="footer-text">© 2025, Developed and Designed by Alberts Garkajs</div>
+    <div class="footer-text">
+      <div>© 2025, Developed and Designed by Alberts Garkajs</div>
+      <div class="license-text">
+        <a href="https://latgaleszoodatabase.vercel.app/">Latgales Zoodārza Datubāze</a> © 2025 by 
+        <a href="https://creativecommons.org">Alberts Garkajs</a> is licensed under 
+        <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International</a>
+        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em; max-height: 1em; margin-left: .2em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em; max-height: 1em; margin-left: .2em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em; max-height: 1em; margin-left: .2em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg" alt="" style="max-width: 1em; max-height: 1em; margin-left: .2em;">
+      </div>
+    </div>
   </div>
   <div id="parentNav">
     <button id="signOutButton" onclick="signOut()">Iziet</button>
