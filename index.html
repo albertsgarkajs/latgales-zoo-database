@@ -75,11 +75,10 @@
     }
     #appIframe {
       width: 100vw;
-      height: calc(100vh - 40px - 40px); /* Subtract nav (~40px) and footer (~40px) */
       border: none;
       display: none;
-      margin-top: 40px;
-      flex-grow: 1;
+      margin-top: 40px; /* Space for nav */
+      min-height: calc(100vh - 40px); /* Ensure iframe fills viewport minus nav */
     }
     .btn-retry {
       background-color: #2E8B57;
@@ -97,9 +96,9 @@
     #parentNav {
       position: fixed;
       top: 40px; /* Align with iframe’s nav */
-      right: 20px; /* Offset to avoid scrollbar, adjust as needed */
+      right: 20px; /* Offset to avoid scrollbar */
       background-color: #228B22;
-      z-index: 1001; /* Above iframe (z-index 999) */
+      z-index: 1001; /* Above iframe */
       padding: 12px 18px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.25);
       display: none; /* Hidden unless injection fails */
@@ -131,6 +130,7 @@
       position: relative;
       z-index: 998; /* Below iframe */
       background: #e9f5ee;
+      margin-top: auto; /* Push to bottom of flex container */
     }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
