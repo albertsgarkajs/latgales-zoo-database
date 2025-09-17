@@ -126,20 +126,12 @@
     #signOutButton:active {
       background-color: #2E8B57;
     }
-    footer {
+    .footer-text {
       text-align: center;
       font-size: 12px;
       color: gray;
       padding: 10px 0;
-      width: 100%;
-      position: relative;
-      z-index: 998;
-      background: #e9f5ee;
-      flex-shrink: 0;
-      display: block; /* Ensure footer is visible by default */
-    }
-    #loginContainer.hidden ~ footer {
-      display: none; /* Hide footer when login container is hidden */
+      margin-top: 20px;
     }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -159,6 +151,7 @@
     <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_black"></div>
     <div id="errorMessage"></div>
     <button class="btn-retry" onclick="window.location.reload()">Mēģināt vēlreiz</button>
+    <div class="footer-text">© 2025, Developed and Designed by Alberts Garkajs</div>
   </div>
   <div id="parentNav">
     <button id="signOutButton" onclick="signOut()">Iziet</button>
@@ -168,7 +161,6 @@
     src=""
     title="Latgales Zoodārza Dzīvnieku Datubāze"
   ></iframe>
-  <footer>© 2025, Developed and Designed by Alberts Garkajs</footer>
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     let userEmail = '';
