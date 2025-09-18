@@ -198,11 +198,9 @@
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/a/*/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     let userEmail = '';
-
     function isMobileDevice() {
       return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && window.innerWidth <= 768;
     }
-
     if (isMobileDevice()) {
       const mobileStyle = document.createElement('style');
       mobileStyle.textContent = `
@@ -286,11 +284,9 @@
       `;
       document.head.appendChild(mobileStyle);
     }
-
     function logDebug(message) {
       console.log('[index.html] ' + message);
     }
-
     function showError(message) {
       console.error('[index.html] ' + message);
       document.getElementById('errorMessage').textContent = message;
@@ -298,7 +294,6 @@
       document.getElementById('loadingOverlay').classList.add('hidden');
       document.getElementById('loadingOverlay').style.display = 'none';
     }
-
     function handleCredentialResponse(response) {
       logDebug('Google OAuth initiated: ' + JSON.stringify(response));
       if (response.credential) {
@@ -339,7 +334,6 @@
         showError('Kļūda: Nav derīgu Google autentifikācijas datu');
       }
     }
-
     async function signOut() {
       try {
         logDebug('Initiating server-side sign-out');
@@ -383,7 +377,6 @@
         document.getElementById('loadingOverlay').style.display = 'none';
       }
     }
-
     function injectSignOutButton(iframe) {
       try {
         const doc = iframe.contentDocument || iframe.contentWindow.document;
@@ -508,8 +501,8 @@
                 window.currentEditingData = { sheetName: sectionName, rowIndex: rowIndex + 1, headers: headers };
                 const photoUrlIndex = headers.indexOf('Dzīvnieka foto');
                 const nameIndex = headers.indexOf('Dzīvnieka nosaukums latviski');
-                const photoUrlRaw = photoUrlIndex >= 0 && row[photoUrlIndex] ? String(row[photoUrlIndex]) : '';
-                const animalNameRaw = nameIndex >= 0 && row[nameIndex] ? String(row[nameIndex]) : 'Dzīvnieks';
+                const photoUrlRaw = photoUrlIndex >= 0 && row[photoUrlIndex] ? String(row[photoUrlIndex]).trim() : '';
+                const animalNameRaw = nameIndex >= 0 && row[nameIndex] ? String(row[nameIndex]).trim() : 'Dzīvnieks';
                 const photoUrl = sanitize(photoUrlRaw);
                 const animalName = sanitize(animalNameRaw);
                 console.log('[iframe] photoUrlRaw: ' + photoUrlRaw);
@@ -520,56 +513,58 @@
                 console.log('[iframe] Row length: ' + row.length);
                 let html = '<h3>Dzīvnieka detalizēts apraksts</h3>';
                 if (photoUrl && photoUrl.match(/^https?:\/\/[^\s<>"']+$/)) {
-                  html += '<img src="' + photoUrl + '" alt="' + animalName + '" class="animal-photo" style="max-width:100%;height:auto;max-height:300px;margin-bottom:20px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.2);" onerror="this.style.display=\\'none\\';this.nextElementSibling.style.display=\\'block\\';">';
-                  html += '<div class="no-photo" style="display:none;color:#666;font-style:italic;margin-bottom:20px;">Attēls nav pieejams</div>';
+                  html += '<div style="position: relative; width: 100%; max-width: 400px; margin-bottom: 20px;">';
+                  html += '<img src="' + photoUrl + '" alt="' + animalName + '" class="animal-photo" style="max-width: 100%; height: auto; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: block;" onload="this.style.display=\\'block\\'; this.nextElementSibling.style.display=\\'none\\';" onerror="this.style.display=\\'none\\'; this.nextElementSibling.style.display=\\'block\\';">';
+                  html += '<div class="no-photo" style="display: none; color: #666; font-style: italic; text-align: center;">Attēls nav pieejams vai nav derīgs</div>';
+                  html += '</div>';
                 } else {
-                  html += '<div class="no-photo" style="color:#666;font-style:italic;margin-bottom:20px;">Nav pieejams foto</div>';
+                  html += '<div class="no-photo" style="color: #666; font-style: italic; text-align: center; margin-bottom: 20px;">Nav pieejams foto</div>';
                 }
                 html += '<h4>' + animalName + '</h4>';
-                html += '<table style="width:100%;border-collapse:collapse;"><tbody>';
+                html += '<table style="width: 100%; border-collapse: collapse; margin-top: 20px;"><tbody>';
                 for (let i = 0; i < headers.length; i++) {
                   if (headers[i] === 'Dzīvnieka foto' || headers[i] === 'Dzīvnieka nosaukums latviski') continue;
                   const header = sanitize(headers[i] || '');
                   const value = sanitize(row[i] || '');
                   html += '<tr>';
-                  html += '<th style="text-align:left;border:1px solid #ddd;padding:8px;width:30%;">' + header + '</th>';
-                  html += '<td style="border:1px solid #ddd;padding:8px;">' + value + '</td>';
+                  html += '<th style="text-align: left; border: 1px solid #ddd; padding: 8px; width: 30%; background: #f9f9f9;">' + header + '</th>';
+                  html += '<td style="border: 1px solid #ddd; padding: 8px;">' + value + '</td>';
                   html += '</tr>';
                 }
                 html += '</tbody></table>';
                 if (${canEdit}) {
-                  html += '<button class="btn-edit" onclick="toggleEditForm()">Labot ierakstu</button>';
-                  html += '<div id="editForm" class="edit-form">';
+                  html += '<button class="btn-edit" onclick="toggleEditForm()" style="margin-top: 20px; background: #2E8B57; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Labot ierakstu</button>';
+                  html += '<div id="editForm" class="edit-form" style="margin-top: 20px; display: none;">';
                   html += '<h4>Labot ierakstu</h4>';
                   html += '<form id="edit-entry-form" onsubmit="return submitEditForm();">';
                   for (let i = 0; i < headers.length; i++) {
                     const header = sanitize(headers[i] || '');
                     const value = sanitize(row[i] || '');
-                    html += '<div class="form-group">';
-                    html += '<label for="edit-' + i + '">' + header + '</label>';
+                    html += '<div class="form-group" style="margin-bottom: 15px;">';
+                    html += '<label for="edit-' + i + '" style="display: block; margin-bottom: 5px;">' + header + '</label>';
                     if (header === 'Karantīna') {
-                      html += '<select id="edit-' + i + '" name="' + header + '" class="form-control">';
+                      html += '<select id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">';
                       html += '<option value="">Izvēlieties statusu</option>';
                       html += '<option value="Jā"' + (value === 'Jā' ? ' selected' : '') + '>Jā</option>';
                       html += '<option value="Nē"' + (value === 'Nē' ? ' selected' : '') + '>Nē</option>';
                       html += '</select>';
                     } else if (header.includes('datums')) {
-                      html += '<input type="date" id="edit-' + i + '" name="' + header + '" value="' + value + '" class="form-control">';
+                      html += '<input type="date" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">';
                     } else if (header === 'Dzīvnieku skaits') {
-                      html += '<input type="number" id="edit-' + i + '" name="' + header + '" value="' + value + '" min="1" class="form-control">';
+                      html += '<input type="number" id="edit-' + i + '" name="' + header + '" value="' + value + '" min="1" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">';
                     } else if (header === 'Ārstēšana' || header === 'Piezīmes') {
-                      html += '<textarea id="edit-' + i + '" name="' + header + '" class="form-control" rows="3">' + value + '</textarea>';
+                      html += '<textarea id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;" rows="3">' + value + '</textarea>';
                     } else {
-                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" class="form-control">';
+                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">';
                     }
                     html += '</div>';
                   }
-                  html += '<button type="submit" class="btn-primary">Saglabāt izmaiņas</button>';
-                  html += '<button type="button" onclick="toggleEditForm()" style="margin-left:10px;">Atcelt</button>';
+                  html += '<button type="submit" style="background: #2E8B57; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Saglabāt izmaiņas</button>';
+                  html += '<button type="button" onclick="toggleEditForm()" style="margin-left: 10px; background: #ccc; color: black; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Atcelt</button>';
                   html += '</form>';
                   html += '</div>';
                 }
-                content.innerHTML = '<span id="closeFullView" onclick="closeFullView()">&times;</span>' + html;
+                content.innerHTML = '<span id="closeFullView" onclick="closeFullView()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">&times;</span>' + html;
                 modal.style.display = 'block';
                 console.log('[iframe] Modal content set successfully');
               } catch (e) {
@@ -589,7 +584,6 @@
         logDebug('Falling back to parentNav for Iziet button');
       }
     }
-
     function resizeIframe() {
       if (!isMobileDevice()) return;
       const iframe = document.getElementById('appIframe');
@@ -603,7 +597,6 @@
         }
       }
     }
-
     window.onload = async () => {
       logDebug('Starting authentication check');
       try {
