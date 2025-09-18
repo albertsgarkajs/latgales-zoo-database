@@ -143,6 +143,19 @@
     .license-text {
       margin-top: 5px;
     }
+    .animal-photo {
+      max-width: 100%;
+      height: auto;
+      max-height: 300px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .no-photo {
+      color: #666;
+      font-style: italic;
+      margin-bottom: 20px;
+    }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -186,12 +199,10 @@
     const APPS_SCRIPT_URL = 'https://script.google.com/a/*/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     let userEmail = '';
 
-    // Detect mobile device
     function isMobileDevice() {
       return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && window.innerWidth <= 768;
     }
 
-    // Inject mobile-specific styles
     if (isMobileDevice()) {
       const mobileStyle = document.createElement('style');
       mobileStyle.textContent = `
@@ -279,6 +290,7 @@
     function logDebug(message) {
       console.log('[index.html] ' + message);
     }
+
     function showError(message) {
       console.error('[index.html] ' + message);
       document.getElementById('errorMessage').textContent = message;
@@ -286,6 +298,7 @@
       document.getElementById('loadingOverlay').classList.add('hidden');
       document.getElementById('loadingOverlay').style.display = 'none';
     }
+
     function handleCredentialResponse(response) {
       logDebug('Google OAuth initiated: ' + JSON.stringify(response));
       if (response.credential) {
@@ -326,6 +339,7 @@
         showError('Kļūda: Nav derīgu Google autentifikācijas datu');
       }
     }
+
     async function signOut() {
       try {
         logDebug('Initiating server-side sign-out');
@@ -369,6 +383,7 @@
         document.getElementById('loadingOverlay').style.display = 'none';
       }
     }
+
     function injectSignOutButton(iframe) {
       try {
         const doc = iframe.contentDocument || iframe.contentWindow.document;
@@ -413,36 +428,35 @@
         newEntryButton.insertAdjacentElement('afterend', signOutButton);
         document.getElementById('parentNav').style.display = 'none';
         logDebug('Successfully injected Iziet button into iframe nav');
-        // Inject responsive CSS for iframe content on mobile
         if (isMobileDevice()) {
           try {
             const style = doc.createElement('style');
             style.textContent = `
-              body { 
-                overflow-x: auto !important; 
-                margin: 0; 
-                padding: 8px; 
-                box-sizing: border-box; 
-                max-width: 100%; 
+              body {
+                overflow-x: auto !important;
+                margin: 0;
+                padding: 8px;
+                box-sizing: border-box;
+                max-width: 100%;
               }
-              nav, nav * { 
-                font-size: 14px !important; 
-                padding: 4px 8px !important; 
+              nav, nav * {
+                font-size: 14px !important;
+                padding: 4px 8px !important;
                 margin: 0 2px !important;
               }
-              table { 
-                width: 100% !important; 
-                max-width: 100% !important; 
-                border-collapse: collapse; 
-                display: block; 
-                overflow-x: auto; 
-                box-sizing: border-box; 
+              table {
+                width: 100% !important;
+                max-width: 100% !important;
+                border-collapse: collapse;
+                display: block;
+                overflow-x: auto;
+                box-sizing: border-box;
               }
-              th, td { 
-                padding: 4px !important; 
-                font-size: 14px !important; 
-                white-space: nowrap; 
-                min-width: 80px; 
+              th, td {
+                padding: 4px !important;
+                font-size: 14px !important;
+                white-space: nowrap;
+                min-width: 80px;
               }
               @media (max-width: 480px) {
                 nav, nav * { font-size: 12px !important; padding: 3px 6px !important; }
@@ -455,14 +469,129 @@
             console.warn('Failed to inject iframe CSS: ' + e.message);
           }
         }
+        // Inject openFullView override
+        try {
+          const script = doc.createElement('script');
+          script.textContent = `
+            function sanitize(str) {
+              if (!str) return '';
+              return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            }
+            window.openFullView = function(sectionName, rowIndex) {
+              console.log('[iframe] Opening full view for: ' + sectionName + ', row: ' + rowIndex);
+              try {
+                const data = window.animalData?.[sectionName];
+                if (!data) {
+                  console.error('[iframe] Data not found for section: ' + sectionName);
+                  document.querySelector('.content').innerHTML += '<div class="error-message">Kļūda: Dati nav atrasti sadaļai ' + sectionName + '</div>';
+                  return;
+                }
+                const headers = data.headers;
+                const row = data.rows[rowIndex];
+                if (!row) {
+                  console.error('[iframe] Row not found at index: ' + rowIndex);
+                  document.querySelector('.content').innerHTML += '<div class="error-message">Kļūda: Rinda nav atrasta index ' + rowIndex + '</div>';
+                  return;
+                }
+                const modal = document.getElementById('fullViewModal');
+                const content = document.getElementById('fullViewContent');
+                if (!modal || !content) {
+                  console.error('[iframe] Modal or content element not found');
+                  document.querySelector('.content').innerHTML += '<div class="error-message">Kļūda: Modālis vai satura elements nav atrasts</div>';
+                  return;
+                }
+                window.currentEditingData = { sheetName: sectionName, rowIndex: rowIndex + 1, headers: headers };
+                const photoUrlIndex = headers.indexOf('Dzīvnieka foto');
+                const nameIndex = headers.indexOf('Dzīvnieka nosaukums latviski');
+                const photoUrlRaw = photoUrlIndex >= 0 && row[photoUrlIndex] ? String(row[photoUrlIndex]) : '';
+                const animalNameRaw = nameIndex >= 0 && row[nameIndex] ? String(row[nameIndex]) : 'Dzīvnieks';
+                const photoUrl = sanitize(photoUrlRaw);
+                const animalName = sanitize(animalNameRaw);
+                console.log('[iframe] photoUrlRaw: ' + photoUrlRaw);
+                console.log('[iframe] photoUrl: ' + photoUrl);
+                console.log('[iframe] animalNameRaw: ' + animalNameRaw);
+                console.log('[iframe] animalName: ' + animalName);
+                console.log('[iframe] Headers length: ' + headers.length);
+                console.log('[iframe] Row length: ' + row.length);
+                let html = '<h3>Dzīvnieka detalizēts apraksts</h3>';
+                if (photoUrl && photoUrl.match(/^https?:\/\/[^\s<>"']+$/)) {
+                  html += '<img src="' + photoUrl + '" alt="' + animalName + '" class="animal-photo" style="max-width:100%;height:auto;max-height:300px;margin-bottom:20px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.2);" onerror="this.style.display=\\'none\\';this.nextElementSibling.style.display=\\'block\\';">';
+                  html += '<div class="no-photo" style="display:none;color:#666;font-style:italic;margin-bottom:20px;">Attēls nav pieejams</div>';
+                } else {
+                  html += '<div class="no-photo" style="color:#666;font-style:italic;margin-bottom:20px;">Nav pieejams foto</div>';
+                }
+                html += '<h4>' + animalName + '</h4>';
+                html += '<table style="width:100%;border-collapse:collapse;"><tbody>';
+                for (let i = 0; i < headers.length; i++) {
+                  if (headers[i] === 'Dzīvnieka foto' || headers[i] === 'Dzīvnieka nosaukums latviski') continue;
+                  const header = sanitize(headers[i] || '');
+                  const value = sanitize(row[i] || '');
+                  html += '<tr>';
+                  html += '<th style="text-align:left;border:1px solid #ddd;padding:8px;width:30%;">' + header + '</th>';
+                  html += '<td style="border:1px solid #ddd;padding:8px;">' + value + '</td>';
+                  html += '</tr>';
+                }
+                html += '</tbody></table>';
+                if (${canEdit}) {
+                  html += '<button class="btn-edit" onclick="toggleEditForm()">Labot ierakstu</button>';
+                  html += '<div id="editForm" class="edit-form">';
+                  html += '<h4>Labot ierakstu</h4>';
+                  html += '<form id="edit-entry-form" onsubmit="return submitEditForm();">';
+                  for (let i = 0; i < headers.length; i++) {
+                    const header = sanitize(headers[i] || '');
+                    const value = sanitize(row[i] || '');
+                    html += '<div class="form-group">';
+                    html += '<label for="edit-' + i + '">' + header + '</label>';
+                    if (header === 'Karantīna') {
+                      html += '<select id="edit-' + i + '" name="' + header + '" class="form-control">';
+                      html += '<option value="">Izvēlieties statusu</option>';
+                      html += '<option value="Jā"' + (value === 'Jā' ? ' selected' : '') + '>Jā</option>';
+                      html += '<option value="Nē"' + (value === 'Nē' ? ' selected' : '') + '>Nē</option>';
+                      html += '</select>';
+                    } else if (header.includes('datums')) {
+                      html += '<input type="date" id="edit-' + i + '" name="' + header + '" value="' + value + '" class="form-control">';
+                    } else if (header === 'Dzīvnieku skaits') {
+                      html += '<input type="number" id="edit-' + i + '" name="' + header + '" value="' + value + '" min="1" class="form-control">';
+                    } else if (header === 'Ārstēšana' || header === 'Piezīmes') {
+                      html += '<textarea id="edit-' + i + '" name="' + header + '" class="form-control" rows="3">' + value + '</textarea>';
+                    } else {
+                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" class="form-control">';
+                    }
+                    html += '</div>';
+                  }
+                  html += '<button type="submit" class="btn-primary">Saglabāt izmaiņas</button>';
+                  html += '<button type="button" onclick="toggleEditForm()" style="margin-left:10px;">Atcelt</button>';
+                  html += '</form>';
+                  html += '</div>';
+                }
+                content.innerHTML = '<span id="closeFullView" onclick="closeFullView()">&times;</span>' + html;
+                modal.style.display = 'block';
+                console.log('[iframe] Modal content set successfully');
+              } catch (e) {
+                console.error('[iframe] Error in openFullView: ' + e.message);
+                document.querySelector('.content').innerHTML += '<div class="error-message">Kļūda atverot detalizēto skatu: ' + e.message + '</div>';
+              }
+            };
+          `;
+          doc.head.appendChild(script);
+          logDebug('Injected openFullView override into iframe');
+        } catch (e) {
+          console.error('[index.html] Failed to inject openFullView: ' + e.message);
+        }
       } catch (error) {
-        console.error('Failed to inject Iziet button: ' + error.message);
+        console.error('[index.html] Failed to inject Iziet button: ' + error.message);
         document.getElementById('parentNav').style.display = 'block';
         logDebug('Falling back to parentNav for Iziet button');
       }
     }
+
     function resizeIframe() {
-      if (!isMobileDevice()) return; // Only resize on mobile
+      if (!isMobileDevice()) return;
       const iframe = document.getElementById('appIframe');
       if (iframe.style.display === 'block') {
         try {
@@ -470,10 +599,11 @@
           iframe.style.height = `${Math.max(contentHeight, window.innerHeight - 60)}px`;
         } catch (e) {
           iframe.style.height = `${window.innerHeight - 60}px`;
-          console.warn('Cannot access iframe content for resizing: ' + e.message);
+          console.warn('[index.html] Cannot access iframe content for resizing: ' + e.message);
         }
       }
     }
+
     window.onload = async () => {
       logDebug('Starting authentication check');
       try {
