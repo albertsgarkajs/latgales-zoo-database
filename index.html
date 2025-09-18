@@ -511,16 +511,16 @@
                 console.log('[iframe] animalName: ' + animalName);
                 console.log('[iframe] Headers length: ' + headers.length);
                 console.log('[iframe] Row length: ' + row.length);
-                let html = '<h3>Dzīvnieka detalizēts apraksts</h3>';
+                let html = '<h3 style="margin-bottom: 20px;">Dzīvnieka detalizēts apraksts</h3>';
                 if (photoUrl && photoUrl.match(/^https?:\/\/[^\s<>"']+$/)) {
-                  html += '<div style="position: relative; width: 100%; max-width: 400px; margin-bottom: 20px;">';
-                  html += '<img src="' + photoUrl + '" alt="' + animalName + '" class="animal-photo" style="max-width: 100%; height: auto; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: block;" onload="this.style.display=\\'block\\'; this.nextElementSibling.style.display=\\'none\\';" onerror="this.style.display=\\'none\\'; this.nextElementSibling.style.display=\\'block\\';">';
+                  html += '<div style="position: relative; width: 100%; max-width: 400px; margin: 0 auto 20px auto; text-align: center;">';
+                  html += '<img src="' + photoUrl + '" alt="' + animalName + '" class="animal-photo" style="max-width: 100%; height: auto; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: block; margin: 0 auto;" onload="this.style.display=\\'block\\'; this.nextElementSibling.style.display=\\'none\\';" onerror="this.style.display=\\'none\\'; this.nextElementSibling.style.display=\\'block\\';">';
                   html += '<div class="no-photo" style="display: none; color: #666; font-style: italic; text-align: center;">Attēls nav pieejams vai nav derīgs</div>';
                   html += '</div>';
                 } else {
                   html += '<div class="no-photo" style="color: #666; font-style: italic; text-align: center; margin-bottom: 20px;">Nav pieejams foto</div>';
                 }
-                html += '<h4>' + animalName + '</h4>';
+                html += '<h4 style="text-align: center; margin-bottom: 20px;">' + animalName + '</h4>';
                 html += '<table style="width: 100%; border-collapse: collapse; margin-top: 20px;"><tbody>';
                 for (let i = 0; i < headers.length; i++) {
                   if (headers[i] === 'Dzīvnieka foto' || headers[i] === 'Dzīvnieka nosaukums latviski') continue;
@@ -533,9 +533,9 @@
                 }
                 html += '</tbody></table>';
                 if (${canEdit}) {
-                  html += '<button class="btn-edit" onclick="toggleEditForm()" style="margin-top: 20px; background: #2E8B57; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Labot ierakstu</button>';
+                  html += '<button class="btn-edit" onclick="toggleEditForm()" style="margin: 20px auto; background: #2E8B57; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; display: block;">Labot ierakstu</button>';
                   html += '<div id="editForm" class="edit-form" style="margin-top: 20px; display: none;">';
-                  html += '<h4>Labot ierakstu</h4>';
+                  html += '<h4 style="margin-bottom: 15px;">Labot ierakstu</h4>';
                   html += '<form id="edit-entry-form" onsubmit="return submitEditForm();">';
                   for (let i = 0; i < headers.length; i++) {
                     const header = sanitize(headers[i] || '');
@@ -554,6 +554,8 @@
                       html += '<input type="number" id="edit-' + i + '" name="' + header + '" value="' + value + '" min="1" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">';
                     } else if (header === 'Ārstēšana' || header === 'Piezīmes') {
                       html += '<textarea id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;" rows="3">' + value + '</textarea>';
+                    } else if (header === 'Dzīvnieka foto') {
+                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="Ievadiet attēla URL">';
                     } else {
                       html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">';
                     }
