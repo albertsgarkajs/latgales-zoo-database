@@ -9,7 +9,7 @@
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', Verdana, sans-serif;
-      background: #e9f5ee;
+      background: #e8f5e9;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
@@ -56,7 +56,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      background: #e9f5ee;
+      background: #e8f5e9;
       z-index: 2000;
     }
     #loginContainer.hidden {
@@ -107,8 +107,10 @@
       padding: 12px 18px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.25);
       display: none;
+      display: flex;
+      gap: 10px;
     }
-    #signOutButton {
+    #deathReportsButton, #signOutButton {
       background: none;
       border: none;
       color: white;
@@ -119,11 +121,11 @@
       transition: background 0.2s, transform 0.2s;
       line-height: 1.5;
     }
-    #signOutButton:hover {
+    #deathReportsButton:hover, #signOutButton:hover {
       background-color: #32CD32;
       transform: translateY(-2px);
     }
-    #signOutButton:active {
+    #deathReportsButton:active, #signOutButton:active {
       background-color: #2E8B57;
     }
     .footer-text {
@@ -155,6 +157,58 @@
       color: #666;
       font-style: italic;
       margin-bottom: 20px;
+    }
+    /* Modal Styles */
+    #deathReportsModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+    #deathReportsModalContent {
+      background: #ffffff;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 800px;
+      height: 80vh;
+      position: relative;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    #deathReportsIframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    #closeDeathReportsModal {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #2E8B57;
+    }
+    #deathReportsError {
+      color: red;
+      text-align: center;
+      padding: 20px;
+      display: none;
+    }
+    @media (max-width: 768px) {
+      #deathReportsModalContent {
+        width: 95%;
+        height: 90vh;
+      }
+      #deathReportsButton, #signOutButton {
+        padding: 6px 10px;
+        font-size: 13px;
+      }
     }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -188,7 +242,15 @@
     </div>
   </div>
   <div id="parentNav">
+    <button id="deathReportsButton" onclick="openDeathReports()">Nāves ziņojumi</button>
     <button id="signOutButton" onclick="signOut()">Iziet</button>
+  </div>
+  <div id="deathReportsModal">
+    <div id="deathReportsModalContent">
+      <span id="closeDeathReportsModal" onclick="closeDeathReportsModal()">&times;</span>
+      <div id="deathReportsError">Kļūda: Nevar ielādēt nāves ziņojumu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(DEATH_REPORTS_URL, '_blank'); closeDeathReportsModal();">jaunā cilnē</a>.</div>
+      <iframe id="deathReportsIframe" src="" title="Nāves ziņojumu forma"></iframe>
+    </div>
   </div>
   <iframe
     id="appIframe"
@@ -197,10 +259,38 @@
   ></iframe>
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/a/*/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
+    const DEATH_REPORTS_URL = 'https://script.google.com/macros/s/AKfycbzuI7qfPVOlqfYGe08TnJ4RUp-Mq2840y6KDi5xVPv189iQPVVxaKJ8dD9ZnSND4WyN/exec';
     let userEmail = '';
+
+    function openDeathReports() {
+      logDebug('Opening Death Reports modal');
+      const modal = document.getElementById('deathReportsModal');
+      const iframe = document.getElementById('deathReportsIframe');
+      const errorDiv = document.getElementById('deathReportsError');
+      errorDiv.style.display = 'none';
+      iframe.src = DEATH_REPORTS_URL;
+      modal.style.display = 'flex';
+      iframe.onload = () => {
+        logDebug('Death Reports iframe loaded successfully');
+      };
+      iframe.onerror = () => {
+        logDebug('Error loading Death Reports iframe');
+        errorDiv.style.display = 'block';
+      };
+    }
+
+    function closeDeathReportsModal() {
+      logDebug('Closing Death Reports modal');
+      const modal = document.getElementById('deathReportsModal');
+      const iframe = document.getElementById('deathReportsIframe');
+      modal.style.display = 'none';
+      iframe.src = ''; // Reset iframe to prevent memory leaks
+    }
+
     function isMobileDevice() {
       return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && window.innerWidth <= 768;
     }
+
     if (isMobileDevice()) {
       const mobileStyle = document.createElement('style');
       mobileStyle.textContent = `
@@ -243,8 +333,10 @@
           padding: 6px 10px;
           top: 6px;
           right: 6px;
+          display: flex;
+          gap: 10px;
         }
-        #signOutButton {
+        #deathReportsButton, #signOutButton {
           padding: 6px 10px;
           font-size: 13px;
         }
@@ -273,7 +365,7 @@
           #parentNav {
             padding: 5px 8px;
           }
-          #signOutButton {
+          #deathReportsButton, #signOutButton {
             padding: 5px 8px;
             font-size: 12px;
           }
@@ -284,9 +376,11 @@
       `;
       document.head.appendChild(mobileStyle);
     }
+
     function logDebug(message) {
       console.log('[index.html] ' + message);
     }
+
     function showError(message) {
       console.error('[index.html] ' + message);
       document.getElementById('errorMessage').textContent = message;
@@ -294,6 +388,7 @@
       document.getElementById('loadingOverlay').classList.add('hidden');
       document.getElementById('loadingOverlay').style.display = 'none';
     }
+
     function handleCredentialResponse(response) {
       logDebug('Google OAuth initiated: ' + JSON.stringify(response));
       if (response.credential) {
@@ -334,6 +429,7 @@
         showError('Kļūda: Nav derīgu Google autentifikācijas datu');
       }
     }
+
     async function signOut() {
       try {
         logDebug('Initiating server-side sign-out');
@@ -361,6 +457,7 @@
           document.getElementById('loginContainer').classList.remove('hidden');
           document.getElementById('loadingOverlay').classList.add('hidden');
           document.getElementById('loadingOverlay').style.display = 'none';
+          closeDeathReportsModal();
         } else {
           throw new Error('Sign-out failed: ' + (result.error || 'Unknown error'));
         }
@@ -375,9 +472,11 @@
         document.getElementById('loginContainer').classList.remove('hidden');
         document.getElementById('loadingOverlay').classList.add('hidden');
         document.getElementById('loadingOverlay').style.display = 'none';
+        closeDeathReportsModal();
       }
     }
-    function injectSignOutButton(iframe) {
+
+    function injectButtons(iframe) {
       try {
         const doc = iframe.contentDocument || iframe.contentWindow.document;
         if (!doc) {
@@ -391,6 +490,37 @@
         if (!newEntryButton) {
           throw new Error('Jauns ieraksts button not found');
         }
+        // Inject Death Reports button
+        const deathReportsButton = doc.createElement('button');
+        deathReportsButton.id = 'deathReportsButton';
+        deathReportsButton.textContent = 'Nāves ziņojumi';
+        deathReportsButton.onclick = () => window.parent.openDeathReports();
+        deathReportsButton.style.background = 'none';
+        deathReportsButton.style.border = 'none';
+        deathReportsButton.style.color = 'white';
+        deathReportsButton.style.padding = isMobileDevice() ? '6px 10px' : '12px 18px';
+        deathReportsButton.style.cursor = 'pointer';
+        deathReportsButton.style.fontSize = isMobileDevice() ? '13px' : '16px';
+        deathReportsButton.style.fontWeight = 'bold';
+        deathReportsButton.style.lineHeight = '1.5';
+        deathReportsButton.style.transition = 'background 0.2s, transform 0.2s';
+        deathReportsButton.style.margin = '0 2px';
+        deathReportsButton.onmouseover = () => {
+          deathReportsButton.style.backgroundColor = '#32CD32';
+          deathReportsButton.style.transform = 'translateY(-2px)';
+        };
+        deathReportsButton.onmouseout = () => {
+          deathReportsButton.style.backgroundColor = 'none';
+          deathReportsButton.style.transform = 'none';
+        };
+        deathReportsButton.onmousedown = () => {
+          deathReportsButton.style.backgroundColor = '#2E8B57';
+        };
+        deathReportsButton.onmouseup = () => {
+          deathReportsButton.style.backgroundColor = '#32CD32';
+        };
+        newEntryButton.insertAdjacentElement('afterend', deathReportsButton);
+        // Inject Sign Out button
         const signOutButton = doc.createElement('button');
         signOutButton.id = 'signOutButton';
         signOutButton.textContent = 'Iziet';
@@ -404,6 +534,7 @@
         signOutButton.style.fontWeight = 'bold';
         signOutButton.style.lineHeight = '1.5';
         signOutButton.style.transition = 'background 0.2s, transform 0.2s';
+        signOutButton.style.margin = '0 2px';
         signOutButton.onmouseover = () => {
           signOutButton.style.backgroundColor = '#32CD32';
           signOutButton.style.transform = 'translateY(-2px)';
@@ -418,9 +549,9 @@
         signOutButton.onmouseup = () => {
           signOutButton.style.backgroundColor = '#32CD32';
         };
-        newEntryButton.insertAdjacentElement('afterend', signOutButton);
+        deathReportsButton.insertAdjacentElement('afterend', signOutButton);
         document.getElementById('parentNav').style.display = 'none';
-        logDebug('Successfully injected Iziet button into iframe nav');
+        logDebug('Successfully injected Nāves ziņojumi and Iziet buttons into iframe nav');
         if (isMobileDevice()) {
           try {
             const style = doc.createElement('style');
@@ -581,11 +712,12 @@
           console.error('[index.html] Failed to inject openFullView: ' + e.message);
         }
       } catch (error) {
-        console.error('[index.html] Failed to inject Iziet button: ' + error.message);
+        console.error('[index.html] Failed to inject buttons: ' + error.message);
         document.getElementById('parentNav').style.display = 'block';
-        logDebug('Falling back to parentNav for Iziet button');
+        logDebug('Falling back to parentNav for Nāves ziņojumi and Iziet buttons');
       }
     }
+
     function resizeIframe() {
       if (!isMobileDevice()) return;
       const iframe = document.getElementById('appIframe');
@@ -599,6 +731,7 @@
         }
       }
     }
+
     window.onload = async () => {
       logDebug('Starting authentication check');
       try {
@@ -641,7 +774,7 @@
           iframe.style.display = 'block';
           iframe.onload = () => {
             logDebug('Iframe loaded successfully');
-            injectSignOutButton(iframe);
+            injectButtons(iframe);
             resizeIframe();
             document.getElementById('loadingOverlay').classList.add('hidden');
             setTimeout(() => {
