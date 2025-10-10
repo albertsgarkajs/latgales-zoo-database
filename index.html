@@ -299,9 +299,17 @@
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/a/*/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     const DEATH_REPORTS_URL = 'https://script.google.com/macros/s/AKfycbzffFO5FKMM0JNYMNabRQOlrFQhuiFk_Ax7hUruJh9fw5Nl-cvSvaWUVNmLhLyVEBrTQw/exec';
-    const BIRTH_REPORTS_URL = 'https://script.google.com/macros/s/AKfycbzGK-9P8pVS8Lk35ccyFzftGD1kYmzd0gBekmn3e3Q4mrHPrQLCWehN-0mVqgdShipb/exec'; // TODO: Replace with actual birth reports form URL
+    const BIRTH_REPORTS_URL = ''; // TODO: Replace with actual birth reports form URL
+    const WHITELISTED_EMAILS = ['albertsgarkajs@gmail.com']; // Add more whitelisted emails here
     let userEmail = '';
+    function isWhitelisted(email) {
+      return WHITELISTED_EMAILS.includes(email.toLowerCase());
+    }
     function openDeathReports() {
+      if (!isWhitelisted(userEmail)) {
+        showError('Nav piešķirtas izmantošanas tiesības, sazinieties ar administratoru e-pasts: albertsgarkajs@gmail.com');
+        return;
+      }
       logDebug('Opening Death Reports modal');
       const modal = document.getElementById('deathReportsModal');
       const iframe = document.getElementById('deathReportsIframe');
@@ -325,6 +333,10 @@
       iframe.src = '';
     }
     function openBirthReports() {
+      if (!isWhitelisted(userEmail)) {
+        showError('Nav piešķirtas izmantošanas tiesības, sazinieties ar administratoru e-pasts: albertsgarkajs@gmail.com');
+        return;
+      }
       logDebug('Opening Birth Reports modal');
       const modal = document.getElementById('birthReportsModal');
       const iframe = document.getElementById('birthReportsIframe');
@@ -546,98 +558,133 @@
         if (!newEntryButton) {
           throw new Error('Jauns ieraksts button not found');
         }
-        // Inject Death Reports button
-        const deathReportsButton = doc.createElement('button');
-        deathReportsButton.id = 'deathReportsButton';
-        deathReportsButton.textContent = 'Nāves ziņojumi';
-        deathReportsButton.onclick = () => window.parent.openDeathReports();
-        deathReportsButton.style.background = 'none';
-        deathReportsButton.style.border = 'none';
-        deathReportsButton.style.color = 'white';
-        deathReportsButton.style.padding = isMobileDevice() ? '6px 10px' : '12px 18px';
-        deathReportsButton.style.cursor = 'pointer';
-        deathReportsButton.style.fontSize = isMobileDevice() ? '13px' : '16px';
-        deathReportsButton.style.fontWeight = 'bold';
-        deathReportsButton.style.lineHeight = '1.5';
-        deathReportsButton.style.transition = 'background 0.2s, transform 0.2s';
-        deathReportsButton.style.margin = '0 2px';
-        deathReportsButton.onmouseover = () => {
-          deathReportsButton.style.backgroundColor = '#32CD32';
-          deathReportsButton.style.transform = 'translateY(-2px)';
-        };
-        deathReportsButton.onmouseout = () => {
-          deathReportsButton.style.backgroundColor = 'none';
-          deathReportsButton.style.transform = 'none';
-        };
-        deathReportsButton.onmousedown = () => {
-          deathReportsButton.style.backgroundColor = '#2E8B57';
-        };
-        deathReportsButton.onmouseup = () => {
-          deathReportsButton.style.backgroundColor = '#32CD32';
-        };
-        newEntryButton.insertAdjacentElement('afterend', deathReportsButton);
-        // Inject Birth Reports button
-        const birthReportsButton = doc.createElement('button');
-        birthReportsButton.id = 'birthReportsButton';
-        deathReportsButton.textContent = 'Dzimšanas ziņojumi';
-        birthReportsButton.onclick = () => window.parent.openBirthReports();
-        birthReportsButton.style.background = 'none';
-        birthReportsButton.style.border = 'none';
-        birthReportsButton.style.color = 'white';
-        birthReportsButton.style.padding = isMobileDevice() ? '6px 10px' : '12px 18px';
-        birthReportsButton.style.cursor = 'pointer';
-        birthReportsButton.style.fontSize = isMobileDevice() ? '13px' : '16px';
-        birthReportsButton.style.fontWeight = 'bold';
-        birthReportsButton.style.lineHeight = '1.5';
-        birthReportsButton.style.transition = 'background 0.2s, transform 0.2s';
-        birthReportsButton.style.margin = '0 2px';
-        birthReportsButton.onmouseover = () => {
-          birthReportsButton.style.backgroundColor = '#32CD32';
-          birthReportsButton.style.transform = 'translateY(-2px)';
-        };
-        birthReportsButton.onmouseout = () => {
-          birthReportsButton.style.backgroundColor = 'none';
-          birthReportsButton.style.transform = 'none';
-        };
-        birthReportsButton.onmousedown = () => {
-          birthReportsButton.style.backgroundColor = '#2E8B57';
-        };
-        birthReportsButton.onmouseup = () => {
-          birthReportsButton.style.backgroundColor = '#32CD32';
-        };
-        deathReportsButton.insertAdjacentElement('afterend', birthReportsButton);
-        // Inject Sign Out button
-        const signOutButton = doc.createElement('button');
-        signOutButton.id = 'signOutButton';
-        signOutButton.textContent = 'Iziet';
-        signOutButton.onclick = () => window.parent.signOut();
-        signOutButton.style.background = 'none';
-        signOutButton.style.border = 'none';
-        signOutButton.style.color = 'white';
-        signOutButton.style.padding = isMobileDevice() ? '6px 10px' : '12px 18px';
-        signOutButton.style.cursor = 'pointer';
-        signOutButton.style.fontSize = isMobileDevice() ? '13px' : '16px';
-        signOutButton.style.fontWeight = 'bold';
-        signOutButton.style.lineHeight = '1.5';
-        signOutButton.style.transition = 'background 0.2s, transform 0.2s';
-        signOutButton.style.margin = '0 2px';
-        signOutButton.onmouseover = () => {
-          signOutButton.style.backgroundColor = '#32CD32';
-          signOutButton.style.transform = 'translateY(-2px)';
-        };
-        signOutButton.onmouseout = () => {
-          signOutButton.style.backgroundColor = 'none';
-          signOutButton.style.transform = 'none';
-        };
-        signOutButton.onmousedown = () => {
-          signOutButton.style.backgroundColor = '#2E8B57';
-        };
-        signOutButton.onmouseup = () => {
-          signOutButton.style.backgroundColor = '#32CD32';
-        };
-        birthReportsButton.insertAdjacentElement('afterend', signOutButton);
-        document.getElementById('parentNav').style.display = 'none';
-        logDebug('Successfully injected Nāves ziņojumi, Dzimšanas ziņojumi, and Iziet buttons into iframe nav');
+        if (isWhitelisted(userEmail)) {
+          // Inject Death Reports button
+          const deathReportsButton = doc.createElement('button');
+          deathReportsButton.id = 'deathReportsButton';
+          deathReportsButton.textContent = 'Nāves ziņojumi';
+          deathReportsButton.onclick = () => window.parent.openDeathReports();
+          deathReportsButton.style.background = 'none';
+          deathReportsButton.style.border = 'none';
+          deathReportsButton.style.color = 'white';
+          deathReportsButton.style.padding = isMobileDevice() ? '6px 10px' : '12px 18px';
+          deathReportsButton.style.cursor = 'pointer';
+          deathReportsButton.style.fontSize = isMobileDevice() ? '13px' : '16px';
+          deathReportsButton.style.fontWeight = 'bold';
+          deathReportsButton.style.lineHeight = '1.5';
+          deathReportsButton.style.transition = 'background 0.2s, transform 0.2s';
+          deathReportsButton.style.margin = '0 2px';
+          deathReportsButton.onmouseover = () => {
+            deathReportsButton.style.backgroundColor = '#32CD32';
+            deathReportsButton.style.transform = 'translateY(-2px)';
+          };
+          deathReportsButton.onmouseout = () => {
+            deathReportsButton.style.backgroundColor = 'none';
+            deathReportsButton.style.transform = 'none';
+          };
+          deathReportsButton.onmousedown = () => {
+            deathReportsButton.style.backgroundColor = '#2E8B57';
+          };
+          deathReportsButton.onmouseup = () => {
+            deathReportsButton.style.backgroundColor = '#32CD32';
+          };
+          newEntryButton.insertAdjacentElement('afterend', deathReportsButton);
+          // Inject Birth Reports button
+          const birthReportsButton = doc.createElement('button');
+          birthReportsButton.id = 'birthReportsButton';
+          birthReportsButton.textContent = 'Dzimšanas ziņojumi';
+          birthReportsButton.onclick = () => window.parent.openBirthReports();
+          birthReportsButton.style.background = 'none';
+          birthReportsButton.style.border = 'none';
+          birthReportsButton.style.color = 'white';
+          birthReportsButton.style.padding = isMobileDevice() ? '6px 10px' : '12px 18px';
+          birthReportsButton.style.cursor = 'pointer';
+          deathReportsButton.style.fontSize = isMobileDevice() ? '13px' : '16px';
+          birthReportsButton.style.fontWeight = 'bold';
+          birthReportsButton.style.lineHeight = '1.5';
+          birthReportsButton.style.transition = 'background 0.2s, transform 0.2s';
+          birthReportsButton.style.margin = '0 2px';
+          birthReportsButton.onmouseover = () => {
+            birthReportsButton.style.backgroundColor = '#32CD32';
+            birthReportsButton.style.transform = 'translateY(-2px)';
+          };
+          birthReportsButton.onmouseout = () => {
+            birthReportsButton.style.backgroundColor = 'none';
+            birthReportsButton.style.transform = 'none';
+          };
+          birthReportsButton.onmousedown = () => {
+            birthReportsButton.style.backgroundColor = '#2E8B57';
+          };
+          birthReportsButton.onmouseup = () => {
+            birthReportsButton.style.backgroundColor = '#32CD32';
+          };
+          deathReportsButton.insertAdjacentElement('afterend', birthReportsButton);
+          // Inject Sign Out button
+          const signOutButton = doc.createElement('button');
+          signOutButton.id = 'signOutButton';
+          signOutButton.textContent = 'Iziet';
+          signOutButton.onclick = () => window.parent.signOut();
+          signOutButton.style.background = 'none';
+          signOutButton.style.border = 'none';
+          signOutButton.style.color = 'white';
+          signOutButton.style.padding = isMobileDevice() ? '6px 10px' : '12px 18px';
+          signOutButton.style.cursor = 'pointer';
+          signOutButton.style.fontSize = isMobileDevice() ? '13px' : '16px';
+          signOutButton.style.fontWeight = 'bold';
+          signOutButton.style.lineHeight = '1.5';
+          signOutButton.style.transition = 'background 0.2s, transform 0.2s';
+          signOutButton.style.margin = '0 2px';
+          signOutButton.onmouseover = () => {
+            signOutButton.style.backgroundColor = '#32CD32';
+            signOutButton.style.transform = 'translateY(-2px)';
+          };
+          signOutButton.onmouseout = () => {
+            signOutButton.style.backgroundColor = 'none';
+            signOutButton.style.transform = 'none';
+          };
+          signOutButton.onmousedown = () => {
+            signOutButton.style.backgroundColor = '#2E8B57';
+          };
+          signOutButton.onmouseup = () => {
+            signOutButton.style.backgroundColor = '#32CD32';
+          };
+          birthReportsButton.insertAdjacentElement('afterend', signOutButton);
+          document.getElementById('parentNav').style.display = 'none';
+          logDebug('Successfully injected Nāves ziņojumi, Dzimšanas ziņojumi, and Iziet buttons into iframe nav');
+        } else {
+          // Inject only Sign Out button for non-whitelisted users
+          const signOutButton = doc.createElement('button');
+          signOutButton.id = 'signOutButton';
+          signOutButton.textContent = 'Iziet';
+          signOutButton.onclick = () => window.parent.signOut();
+          signOutButton.style.background = 'none';
+          signOutButton.style.border = 'none';
+          signOutButton.style.color = 'white';
+          signOutButton.style.padding = isMobileDevice() ? '6px 10px' : '12px 18px';
+          signOutButton.style.cursor = 'pointer';
+          signOutButton.style.fontSize = isMobileDevice() ? '13px' : '16px';
+          signOutButton.style.fontWeight = 'bold';
+          signOutButton.style.lineHeight = '1.5';
+          signOutButton.style.transition = 'background 0.2s, transform 0.2s';
+          signOutButton.style.margin = '0 2px';
+          signOutButton.onmouseover = () => {
+            signOutButton.style.backgroundColor = '#32CD32';
+            signOutButton.style.transform = 'translateY(-2px)';
+          };
+          signOutButton.onmouseout = () => {
+            signOutButton.style.backgroundColor = 'none';
+            signOutButton.style.transform = 'none';
+          };
+          signOutButton.onmousedown = () => {
+            signOutButton.style.backgroundColor = '#2E8B57';
+          };
+          signOutButton.onmouseup = () => {
+            signOutButton.style.backgroundColor = '#32CD32';
+          };
+          newEntryButton.insertAdjacentElement('afterend', signOutButton);
+          document.getElementById('parentNav').style.display = 'none';
+          logDebug('Injected only Iziet button for non-whitelisted user');
+        }
         if (isMobileDevice()) {
           try {
             const style = doc.createElement('style');
@@ -799,8 +846,15 @@
         }
       } catch (error) {
         console.error('[index.html] Failed to inject buttons: ' + error.message);
-        document.getElementById('parentNav').style.display = 'block';
-        logDebug('Falling back to parentNav for Nāves ziņojumi, Dzimšanas ziņojumi, and Iziet buttons');
+        if (isWhitelisted(userEmail)) {
+          document.getElementById('parentNav').style.display = 'flex';
+          logDebug('Showing parentNav with all buttons for whitelisted user');
+        } else {
+          document.getElementById('deathReportsButton').style.display = 'none';
+          document.getElementById('birthReportsButton').style.display = 'none';
+          document.getElementById('parentNav').style.display = 'flex';
+          logDebug('Showing parentNav with only Iziet button for non-whitelisted user');
+        }
       }
     }
     function resizeIframe() {
@@ -860,6 +914,15 @@
             logDebug('Iframe loaded successfully');
             injectButtons(iframe);
             resizeIframe();
+            if (isWhitelisted(userEmail)) {
+              document.getElementById('parentNav').style.display = 'flex';
+              document.getElementById('deathReportsButton').style.display = 'inline-block';
+              document.getElementById('birthReportsButton').style.display = 'inline-block';
+            } else {
+              document.getElementById('parentNav').style.display = 'flex';
+              document.getElementById('deathReportsButton').style.display = 'none';
+              document.getElementById('birthReportsButton').style.display = 'none';
+            }
             document.getElementById('loadingOverlay').classList.add('hidden');
             setTimeout(() => {
               document.getElementById('loadingOverlay').style.display = 'none';
