@@ -4,220 +4,230 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Latgales Zoodārza Dzīvnieku Datubāze</title>
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Verdana, sans-serif;
-            background: #e8f5e9;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-        #loadingOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            background: rgba(255, 255, 255, 0.9);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
-            opacity: 1;
-            transition: opacity 0.5s ease-out;
-        }
-        #loadingOverlay.visible {
-            display: flex;
-        }
-        #loadingOverlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        #loadingOverlay img {
-            width: 150px;
-            height: auto;
-        }
-        #loadingOverlay p {
-            font-size: 18px;
-            color: #2E8B57;
-            margin-top: 10px;
-        }
-        #loginContainer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: #e8f5e9;
-            z-index: 2000;
-        }
-        #loginContainer.hidden {
-            display: none;
-        }
-        #loginContainer h2 {
-            margin-top: 0;
-            color: #2E8B57;
-            font-size: 24px;
-        }
-        .g_id_signin {
-            margin: 20px 0;
-        }
-        #errorMessage {
-            color: red;
-            font-size: 16px;
-            margin-top: 20px;
-            text-align: center;
-            max-width: 80%;
-        }
-        #appIframe {
-            width: 100%;
-            height: calc(100vh - 40px - 40px);
-            border: none;
-            display: none;
-            margin-top: 40px;
-            flex-grow: 1;
-        }
-        .btn-retry {
-            background-color: #2E8B57;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-        .btn-retry:hover {
-            background-color: #006400;
-        }
-        #parentNav {
-            position: fixed;
-            top: 40px;
-            right: 20px;
-            background-color: #228B22;
-            z-index: 1001;
-            padding: 12px 18px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.25);
-            display: none;
-            display: flex;
-            gap: 10px;
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Verdana, sans-serif;
+        background: #e8f5e9;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        overflow: hidden;
+    }
+    #loadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 3000;
+        opacity: 0;
+        transition: opacity 0.5s ease-out;
+        pointer-events: none;
+    }
+    #loadingOverlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    #loadingOverlay.hidden {
+        opacity: 0;
+    }
+    #loadingOverlay .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #ccc;
+        border-top: 5px solid #2E8B57;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    #loadingOverlay p {
+        font-size: 18px;
+        color: #2E8B57;
+        margin-top: 10px;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    #loginContainer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #e8f5e9;
+        z-index: 2000;
+    }
+    #loginContainer.hidden {
+        display: none;
+    }
+    #loginContainer h2 {
+        margin-top: 0;
+        color: #2E8B57;
+        font-size: 24px;
+    }
+    .g_id_signin {
+        margin: 20px 0;
+    }
+    #errorMessage {
+        color: red;
+        font-size: 16px;
+        margin-top: 20px;
+        text-align: center;
+        max-width: 80%;
+    }
+    #appIframe {
+        width: 100%;
+        height: calc(100vh - 40px - 40px);
+        border: none;
+        display: none;
+        margin-top: 40px;
+        flex-grow: 1;
+    }
+    .btn-retry {
+        background-color: #2E8B57;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 10px;
+    }
+    .btn-retry:hover {
+        background-color: #006400;
+    }
+    #parentNav {
+        position: fixed;
+        top: 40px;
+        right: 20px;
+        background-color: #228B22;
+        z-index: 1001;
+        padding: 12px 18px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+        display: none;
+        display: flex;
+        gap: 10px;
+    }
+    #deathReportsButton, #birthReportsButton, #signOutButton {
+        background: none;
+        border: none;
+        color: white;
+        padding: 12px 18px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: background 0.2s, transform 0.2s;
+        line-height: 1.5;
+    }
+    #deathReportsButton:hover, #birthReportsButton:hover, #signOutButton:hover {
+        background-color: #32CD32;
+        transform: translateY(-2px);
+    }
+    #deathReportsButton:active, #birthReportsButton:active, #signOutButton:active {
+        background-color: #2E8B57;
+    }
+    .footer-text {
+        text-align: center;
+        font-size: 12px;
+        color: gray;
+        padding: 10px 0;
+        margin-top: 20px;
+    }
+    .footer-text a {
+        color: gray;
+        text-decoration: none;
+    }
+    .footer-text a:hover {
+        text-decoration: underline;
+    }
+    .license-text {
+        margin-top: 5px;
+    }
+    .animal-photo {
+        max-width: 100%;
+        height: auto;
+        max-height: 300px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .no-photo {
+        color: #666;
+        font-style: italic;
+        margin-bottom: 20px;
+    }
+    /* Modal Styles */
+    #deathReportsModal, #birthReportsModal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+    #deathReportsModalContent, #birthReportsModalContent {
+        background: #ffffff;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 800px;
+        height: 80vh;
+        position: relative;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+    #deathReportsIframe, #birthReportsIframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+    #closeDeathReportsModal, #closeBirthReportsModal {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #2E8B57;
+    }
+    #deathReportsError, #birthReportsError {
+        color: red;
+        text-align: center;
+        padding: 20px;
+        display: none;
+    }
+    @media (max-width: 768px) {
+        #deathReportsModalContent, #birthReportsModalContent {
+            width: 95%;
+            height: 90vh;
         }
         #deathReportsButton, #birthReportsButton, #signOutButton {
-            background: none;
-            border: none;
-            color: white;
-            padding: 12px 18px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: background 0.2s, transform 0.2s;
-            line-height: 1.5;
+            padding: 6px 10px;
+            font-size: 13px;
         }
-        #deathReportsButton:hover, #birthReportsButton:hover, #signOutButton:hover {
-            background-color: #32CD32;
-            transform: translateY(-2px);
-        }
-        #deathReportsButton:active, #birthReportsButton:active, #signOutButton:active {
-            background-color: #2E8B57;
-        }
-        .footer-text {
-            text-align: center;
-            font-size: 12px;
-            color: gray;
-            padding: 10px 0;
-            margin-top: 20px;
-        }
-        .footer-text a {
-            color: gray;
-            text-decoration: none;
-        }
-        .footer-text a:hover {
-            text-decoration: underline;
-        }
-        .license-text {
-            margin-top: 5px;
-        }
-        .animal-photo {
-            max-width: 100%;
-            height: auto;
-            max-height: 300px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-        .no-photo {
-            color: #666;
-            font-style: italic;
-            margin-bottom: 20px;
-        }
-        /* Modal Styles */
-        #deathReportsModal, #birthReportsModal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-        #deathReportsModalContent, #birthReportsModalContent {
-            background: #ffffff;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 800px;
-            height: 80vh;
-            position: relative;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        #deathReportsIframe, #birthReportsIframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        #closeDeathReportsModal, #closeBirthReportsModal {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 24px;
-            cursor: pointer;
-            color: #2E8B57;
-        }
-        #deathReportsError, #birthReportsError {
-            color: red;
-            text-align: center;
-            padding: 20px;
-            display: none;
-        }
-        @media (max-width: 768px) {
-            #deathReportsModalContent, #birthReportsModalContent {
-                width: 95%;
-                height: 90vh;
-            }
-            #deathReportsButton, #birthReportsButton, #signOutButton {
-                padding: 6px 10px;
-                font-size: 13px;
-            }
-        }
-    </style>
+    }
+</style>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-    <div id="loadingOverlay" class="hidden">
-        <img src="https://cdn.dribbble.com/users/807926/screenshots/3629667 loadingtwo.gif" alt="Loading Animation">
-        <p>Ielādējam dzīvnieku datubāzi...</p>
-    </div>
+    <!-- Only the modified #loadingOverlay section is shown for brevity -->
+<div id="loadingOverlay" class="hidden">
+    <div class="spinner"></div>
+    <p>Ielādējam dzīvnieku datubāzi...</p>
+</div>
     <div id="loginContainer">
         <h2>Pierakstieties Latgales Zoodārza Datubāzē</h2>
         <div id="g_id_onload"
