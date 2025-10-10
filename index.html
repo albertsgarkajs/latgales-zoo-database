@@ -107,10 +107,10 @@
       padding: 12px 18px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.25);
       display: none;
-      display: flex;
+      flex-direction: row;
       gap: 10px;
     }
-    #deathReportsButton, #signOutButton {
+    #deathReportsButton, #birthReportsButton, #signOutButton {
       background: none;
       border: none;
       color: white;
@@ -121,11 +121,11 @@
       transition: background 0.2s, transform 0.2s;
       line-height: 1.5;
     }
-    #deathReportsButton:hover, #signOutButton:hover {
+    #deathReportsButton:hover, #birthReportsButton:hover, #signOutButton:hover {
       background-color: #32CD32;
       transform: translateY(-2px);
     }
-    #deathReportsButton:active, #signOutButton:active {
+    #deathReportsButton:active, #birthReportsButton:active, #signOutButton:active {
       background-color: #2E8B57;
     }
     .footer-text {
@@ -158,8 +158,7 @@
       font-style: italic;
       margin-bottom: 20px;
     }
-    /* Modal Styles */
-    #deathReportsModal {
+    #deathReportsModal, #birthReportsModal {
       display: none;
       position: fixed;
       top: 0;
@@ -171,7 +170,7 @@
       justify-content: center;
       align-items: center;
     }
-    #deathReportsModalContent {
+    #deathReportsModalContent, #birthReportsModalContent {
       background: #ffffff;
       border-radius: 8px;
       width: 90%;
@@ -181,12 +180,12 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       overflow: hidden;
     }
-    #deathReportsIframe {
+    #deathReportsIframe, #birthReportsIframe {
       width: 100%;
       height: 100%;
       border: none;
     }
-    #closeDeathReportsModal {
+    #closeDeathReportsModal, #closeBirthReportsModal {
       position: absolute;
       top: 10px;
       right: 15px;
@@ -194,20 +193,52 @@
       cursor: pointer;
       color: #2E8B57;
     }
-    #deathReportsError {
+    #deathReportsError, #birthReportsError {
       color: red;
       text-align: center;
       padding: 20px;
       display: none;
     }
     @media (max-width: 768px) {
-      #deathReportsModalContent {
+      #deathReportsModalContent, #birthReportsModalContent {
         width: 95%;
         height: 90vh;
       }
-      #deathReportsButton, #signOutButton {
+      #deathReportsButton, #birthReportsButton, #signOutButton {
         padding: 6px 10px;
         font-size: 13px;
+      }
+      #loadingOverlay img {
+        width: 100px;
+      }
+      #loadingOverlay p {
+        font-size: 14px;
+        margin-top: 6px;
+      }
+    }
+    @media (max-width: 480px) {
+      #loadingOverlay img {
+        width: 80px;
+      }
+      #loadingOverlay p {
+        font-size: 12px;
+      }
+      #loginContainer h2 {
+        font-size: 16px;
+      }
+      .btn-retry {
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+      #parentNav {
+        padding: 5px 8px;
+      }
+      #deathReportsButton, #birthReportsButton, #signOutButton {
+        padding: 5px 8px;
+        font-size: 12px;
+      }
+      .footer-text {
+        font-size: 9px;
       }
     }
   </style>
@@ -215,7 +246,7 @@
 </head>
 <body>
   <div id="loadingOverlay" class="hidden">
-    <img src="https://cdn.dribbble.com/users/807926/screenshots/3629667/loadingtwo.gif" alt="Loading Animation">
+    <img src="https://cdn.dribbble.com/users/807926/screenshots/3629667/loadingtwo.gif" alt="Ielādes animācija">
     <p>Ielādējam dzīvnieku datubāzi...</p>
   </div>
   <div id="loginContainer">
@@ -243,6 +274,7 @@
   </div>
   <div id="parentNav">
     <button id="deathReportsButton" onclick="openDeathReports()">Nāves ziņojumi</button>
+    <button id="birthReportsButton" onclick="openBirthReports()">Dzimšanas ziņojumi</button>
     <button id="signOutButton" onclick="signOut()">Iziet</button>
   </div>
   <div id="deathReportsModal">
@@ -250,6 +282,13 @@
       <span id="closeDeathReportsModal" onclick="closeDeathReportsModal()">&times;</span>
       <div id="deathReportsError">Kļūda: Nevar ielādēt nāves ziņojumu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(DEATH_REPORTS_URL, '_blank'); closeDeathReportsModal();">jaunā cilnē</a>.</div>
       <iframe id="deathReportsIframe" src="" title="Nāves ziņojumu forma"></iframe>
+    </div>
+  </div>
+  <div id="birthReportsModal">
+    <div id="birthReportsModalContent">
+      <span id="closeBirthReportsModal" onclick="closeBirthReportsModal()">&times;</span>
+      <div id="birthReportsError">Kļūda: Nevar ielādēt dzimšanas ziņojumu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(BIRTH_REPORTS_URL, '_blank'); closeBirthReportsModal();">jaunā cilnē</a>.</div>
+      <iframe id="birthReportsIframe" src="" title="Dzimšanas ziņojumu forma"></iframe>
     </div>
   </div>
   <iframe
@@ -260,8 +299,8 @@
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/a/*/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     const DEATH_REPORTS_URL = 'https://script.google.com/macros/s/AKfycbzffFO5FKMM0JNYMNabRQOlrFQhuiFk_Ax7hUruJh9fw5Nl-cvSvaWUVNmLhLyVEBrTQw/exec';
+    const BIRTH_REPORTS_URL = ''; // TODO: Replace with actual birth reports form URL
     let userEmail = '';
-
     function openDeathReports() {
       logDebug('Opening Death Reports modal');
       const modal = document.getElementById('deathReportsModal');
@@ -278,19 +317,39 @@
         errorDiv.style.display = 'block';
       };
     }
-
     function closeDeathReportsModal() {
       logDebug('Closing Death Reports modal');
       const modal = document.getElementById('deathReportsModal');
       const iframe = document.getElementById('deathReportsIframe');
       modal.style.display = 'none';
-      iframe.src = ''; // Reset iframe to prevent memory leaks
+      iframe.src = '';
     }
-
+    function openBirthReports() {
+      logDebug('Opening Birth Reports modal');
+      const modal = document.getElementById('birthReportsModal');
+      const iframe = document.getElementById('birthReportsIframe');
+      const errorDiv = document.getElementById('birthReportsError');
+      errorDiv.style.display = 'none';
+      iframe.src = BIRTH_REPORTS_URL;
+      modal.style.display = 'flex';
+      iframe.onload = () => {
+        logDebug('Birth Reports iframe loaded successfully');
+      };
+      iframe.onerror = () => {
+        logDebug('Error loading Birth Reports iframe');
+        errorDiv.style.display = 'block';
+      };
+    }
+    function closeBirthReportsModal() {
+      logDebug('Closing Birth Reports modal');
+      const modal = document.getElementById('birthReportsModal');
+      const iframe = document.getElementById('birthReportsIframe');
+      modal.style.display = 'none';
+      iframe.src = '';
+    }
     function isMobileDevice() {
       return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && window.innerWidth <= 768;
     }
-
     if (isMobileDevice()) {
       const mobileStyle = document.createElement('style');
       mobileStyle.textContent = `
@@ -336,7 +395,7 @@
           display: flex;
           gap: 10px;
         }
-        #deathReportsButton, #signOutButton {
+        #deathReportsButton, #birthReportsButton, #signOutButton {
           padding: 6px 10px;
           font-size: 13px;
         }
@@ -365,7 +424,7 @@
           #parentNav {
             padding: 5px 8px;
           }
-          #deathReportsButton, #signOutButton {
+          #deathReportsButton, #birthReportsButton, #signOutButton {
             padding: 5px 8px;
             font-size: 12px;
           }
@@ -376,11 +435,9 @@
       `;
       document.head.appendChild(mobileStyle);
     }
-
     function logDebug(message) {
       console.log('[index.html] ' + message);
     }
-
     function showError(message) {
       console.error('[index.html] ' + message);
       document.getElementById('errorMessage').textContent = message;
@@ -388,7 +445,6 @@
       document.getElementById('loadingOverlay').classList.add('hidden');
       document.getElementById('loadingOverlay').style.display = 'none';
     }
-
     function handleCredentialResponse(response) {
       logDebug('Google OAuth initiated: ' + JSON.stringify(response));
       if (response.credential) {
@@ -429,7 +485,6 @@
         showError('Kļūda: Nav derīgu Google autentifikācijas datu');
       }
     }
-
     async function signOut() {
       try {
         logDebug('Initiating server-side sign-out');
@@ -458,6 +513,7 @@
           document.getElementById('loadingOverlay').classList.add('hidden');
           document.getElementById('loadingOverlay').style.display = 'none';
           closeDeathReportsModal();
+          closeBirthReportsModal();
         } else {
           throw new Error('Sign-out failed: ' + (result.error || 'Unknown error'));
         }
@@ -473,9 +529,9 @@
         document.getElementById('loadingOverlay').classList.add('hidden');
         document.getElementById('loadingOverlay').style.display = 'none';
         closeDeathReportsModal();
+        closeBirthReportsModal();
       }
     }
-
     function injectButtons(iframe) {
       try {
         const doc = iframe.contentDocument || iframe.contentWindow.document;
@@ -520,6 +576,36 @@
           deathReportsButton.style.backgroundColor = '#32CD32';
         };
         newEntryButton.insertAdjacentElement('afterend', deathReportsButton);
+        // Inject Birth Reports button
+        const birthReportsButton = doc.createElement('button');
+        birthReportsButton.id = 'birthReportsButton';
+        deathReportsButton.textContent = 'Dzimšanas ziņojumi';
+        birthReportsButton.onclick = () => window.parent.openBirthReports();
+        birthReportsButton.style.background = 'none';
+        birthReportsButton.style.border = 'none';
+        birthReportsButton.style.color = 'white';
+        birthReportsButton.style.padding = isMobileDevice() ? '6px 10px' : '12px 18px';
+        birthReportsButton.style.cursor = 'pointer';
+        birthReportsButton.style.fontSize = isMobileDevice() ? '13px' : '16px';
+        birthReportsButton.style.fontWeight = 'bold';
+        birthReportsButton.style.lineHeight = '1.5';
+        birthReportsButton.style.transition = 'background 0.2s, transform 0.2s';
+        birthReportsButton.style.margin = '0 2px';
+        birthReportsButton.onmouseover = () => {
+          birthReportsButton.style.backgroundColor = '#32CD32';
+          birthReportsButton.style.transform = 'translateY(-2px)';
+        };
+        birthReportsButton.onmouseout = () => {
+          birthReportsButton.style.backgroundColor = 'none';
+          birthReportsButton.style.transform = 'none';
+        };
+        birthReportsButton.onmousedown = () => {
+          birthReportsButton.style.backgroundColor = '#2E8B57';
+        };
+        birthReportsButton.onmouseup = () => {
+          birthReportsButton.style.backgroundColor = '#32CD32';
+        };
+        deathReportsButton.insertAdjacentElement('afterend', birthReportsButton);
         // Inject Sign Out button
         const signOutButton = doc.createElement('button');
         signOutButton.id = 'signOutButton';
@@ -549,9 +635,9 @@
         signOutButton.onmouseup = () => {
           signOutButton.style.backgroundColor = '#32CD32';
         };
-        deathReportsButton.insertAdjacentElement('afterend', signOutButton);
+        birthReportsButton.insertAdjacentElement('afterend', signOutButton);
         document.getElementById('parentNav').style.display = 'none';
-        logDebug('Successfully injected Nāves ziņojumi and Iziet buttons into iframe nav');
+        logDebug('Successfully injected Nāves ziņojumi, Dzimšanas ziņojumi, and Iziet buttons into iframe nav');
         if (isMobileDevice()) {
           try {
             const style = doc.createElement('style');
@@ -714,10 +800,9 @@
       } catch (error) {
         console.error('[index.html] Failed to inject buttons: ' + error.message);
         document.getElementById('parentNav').style.display = 'block';
-        logDebug('Falling back to parentNav for Nāves ziņojumi and Iziet buttons');
+        logDebug('Falling back to parentNav for Nāves ziņojumi, Dzimšanas ziņojumi, and Iziet buttons');
       }
     }
-
     function resizeIframe() {
       if (!isMobileDevice()) return;
       const iframe = document.getElementById('appIframe');
@@ -731,7 +816,6 @@
         }
       }
     }
-
     window.onload = async () => {
       logDebug('Starting authentication check');
       try {
