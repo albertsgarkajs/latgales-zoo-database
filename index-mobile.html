@@ -38,14 +38,13 @@
       pointer-events: none;
     }
     #loadingOverlay img {
-      width: 80px;
+      width: 100px;
       height: auto;
     }
     #loadingOverlay p {
-      font-size: 14px;
+      font-size: 16px;
       color: #2E8B57;
-      margin-top: 6px;
-      text-align: center;
+      margin-top: 10px;
     }
     #loginContainer {
       position: fixed;
@@ -59,8 +58,6 @@
       align-items: center;
       background: #e8f5e9;
       z-index: 2000;
-      padding: 16px;
-      box-sizing: border-box;
     }
     #loginContainer.hidden {
       display: none;
@@ -68,98 +65,78 @@
     #loginContainer h2 {
       margin-top: 0;
       color: #2E8B57;
-      font-size: 18px;
+      font-size: 20px;
       text-align: center;
     }
     .g_id_signin {
-      margin: 12px 0;
-      transform: scale(0.9);
+      margin: 15px 0;
     }
     #errorMessage {
       color: red;
-      font-size: 12px;
-      margin-top: 12px;
+      font-size: 14px;
+      margin-top: 15px;
       text-align: center;
-      max-width: 95%;
+      max-width: 90%;
     }
     #appIframe {
       width: 100%;
-      min-height: 400px;
+      height: calc(100vh - 48px - 40px);
       border: none;
       display: none;
-      margin-top: 60px;
+      margin-top: 48px;
       flex-grow: 1;
-      overflow-x: auto;
-      box-sizing: border-box;
     }
     .btn-retry {
       background-color: #2E8B57;
       color: white;
       border: none;
-      padding: 12px 24px;
+      padding: 8px 16px;
       border-radius: 4px;
       cursor: pointer;
       font-size: 14px;
-      margin-top: 12px;
-      touch-action: manipulation;
+      margin-top: 10px;
     }
     .btn-retry:hover {
       background-color: #006400;
     }
-    #hamburgerMenu {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      z-index: 1002;
-      cursor: pointer;
-    }
-    #hamburgerMenu img {
-      width: 30px;
-      height: 30px;
-    }
     #navMenu {
       position: fixed;
-      top: 50px;
-      right: 10px;
+      top: 0;
+      left: 0;
+      width: 100%;
       background-color: #228B22;
       z-index: 1001;
-      padding: 10px;
+      padding: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.25);
       display: none;
-      flex-direction: column;
-      gap: 8px;
-      border-radius: 4px;
-      min-width: 200px;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
     }
-    #navMenu.visible {
-      display: flex;
-    }
-    #deathReportsButton, #birthReportsButton, #acceptanceActsButton, #signOutButton {
+    #navMenu button {
       background: none;
       border: none;
       color: white;
-      padding: 12px 16px;
+      padding: 8px 12px;
       cursor: pointer;
       font-size: 14px;
       font-weight: bold;
-      text-align: left;
-      transition: background 0.2s;
-      width: 100%;
-      border-radius: 4px;
-      touch-action: manipulation;
+      transition: background 0.2s, transform 0.2s;
+      line-height: 1.5;
     }
-    #deathReportsButton:hover, #birthReportsButton:hover, #acceptanceActsButton:hover, #signOutButton:hover {
+    #navMenu button:hover {
       background-color: #32CD32;
+      transform: translateY(-2px);
     }
-    #deathReportsButton:active, #birthReportsButton:active, #acceptanceActsButton:active, #signOutButton:active {
+    #navMenu button:active {
       background-color: #2E8B57;
     }
     .footer-text {
       text-align: center;
       font-size: 10px;
       color: gray;
-      padding: 6px 12px;
-      margin-top: 20px;
+      padding: 8px 0;
+      margin-top: 10px;
     }
     .footer-text a {
       color: gray;
@@ -170,10 +147,6 @@
     }
     .license-text {
       margin-top: 5px;
-    }
-    .license-text img {
-      max-width: 0.9em;
-      max-height: 0.9em;
     }
     .animal-photo {
       max-width: 100%;
@@ -187,8 +160,6 @@
       color: #666;
       font-style: italic;
       margin-bottom: 15px;
-      font-size: 10px;
-      text-align: center;
     }
     #deathReportsModal, #birthReportsModal, #acceptanceActsModal {
       display: none;
@@ -198,20 +169,19 @@
       width: 100%;
       height: 100vh;
       background: rgba(0, 0, 0, 0.5);
-      z-index: 2500;
+      z-index: 2000;
       justify-content: center;
       align-items: center;
     }
     #deathReportsModalContent, #birthReportsModalContent, #acceptanceActsModalContent {
       background: #ffffff;
-      width: 85vw;
-      max-width: 500px;
-      height: 75vh;
-      position: relative;
       border-radius: 8px;
-      overflow: auto;
-      -webkit-overflow-scrolling: touch;
-      box-sizing: border-box;
+      width: 95%;
+      max-width: 95vw;
+      height: 80vh;
+      position: relative;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      overflow: hidden;
     }
     #deathReportsIframe, #birthReportsIframe, #acceptanceActsIframe {
       width: 100%;
@@ -222,45 +192,17 @@
       position: absolute;
       top: 10px;
       right: 15px;
-      font-size: 24px;
+      font-size: 20px;
       cursor: pointer;
       color: #2E8B57;
-      z-index: 2600;
-      touch-action: manipulation;
+      z-index: 2100;
     }
     #deathReportsError, #birthReportsError, #acceptanceActsError {
       color: red;
       text-align: center;
       padding: 15px;
       display: none;
-      font-size: 10px;
-    }
-    /* Responsive Table Styling for Main Content and openFullView */
-    .table-container {
-      width: 100%;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      margin-top: 15px;
-    }
-    table {
-      width: 100%;
-      max-width: 100%;
-      border-collapse: collapse;
-      font-size: 9px !important;
-      white-space: normal;
-      word-break: break-all;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 3px;
-      text-align: left;
-      font-size: 9px !important;
-      min-width: 50px;
-      max-width: 100px;
-    }
-    th {
-      background: #f9f9f9;
-      font-weight: bold;
+      font-size: 12px;
     }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -286,15 +228,12 @@
         <a href="https://latgaleszoodatabase.vercel.app/">Latgales Zoodārza Datubāze</a> © 2025 by
         <a href="https://creativecommons.org">Alberts Garkajs</a> is licensed under
         <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International</a>
-        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 0.9em; max-height: 0.9em; margin-left: .2em;">
-        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 0.9em; max-height: 0.9em; margin-left: .2em;">
-        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 0.9em; max-height: 0.9em; margin-left: .2em;">
-        <img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg" alt="" style="max-width: 0.9em; max-height: 0.9em; margin-left: .2em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em; max-height: 1em; margin-left: .2em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em; max-height: 1em; margin-left: .2em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em; max-height: 1em; margin-left: .2em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg" alt="" style="max-width: 1em; max-height: 1em; margin-left: .2em;">
       </div>
     </div>
-  </div>
-  <div id="hamburgerMenu">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Hamburger_icon.svg/32px-Hamburger_icon.svg.png" alt="Menu">
   </div>
   <div id="navMenu">
     <button id="deathReportsButton" onclick="openDeathReports()">Nāves ziņojumi</button>
@@ -323,7 +262,11 @@
       <iframe id="acceptanceActsIframe" src="" title="Pieņemšanas aktu forma"></iframe>
     </div>
   </div>
-  <iframe id="appIframe" src="" title="Latgales Zoodārza Dzīvnieku Datubāze"></iframe>
+  <iframe
+    id="appIframe"
+    src=""
+    title="Latgales Zoodārza Dzīvnieku Datubāze"
+  ></iframe>
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/a/*/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     const DEATH_REPORTS_URL = 'https://script.google.com/macros/s/AKfycbzffFO5FKMM0JNYMNabRQOlrFQhuiFk_Ax7hUruJh9fw5Nl-cvSvaWUVNmLhLyVEBrTQw/exec';
@@ -334,42 +277,13 @@
     function isWhitelisted(email) {
       return WHITELISTED_EMAILS.includes(email.toLowerCase());
     }
-    function toggleNavMenu() {
-      const navMenu = document.getElementById('navMenu');
-      logDebug('Toggling navMenu, current classList: ' + navMenu.classList);
-      navMenu.classList.toggle('visible');
-      logDebug('NavMenu toggled, new classList: ' + navMenu.classList);
-    }
-    document.getElementById('hamburgerMenu').addEventListener('click', toggleNavMenu);
-    document.getElementById('hamburgerMenu').addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      logDebug('Hamburger touchstart triggered');
-      toggleNavMenu();
-    });
-    document.addEventListener('click', (e) => {
-      const navMenu = document.getElementById('navMenu');
-      const hamburger = document.getElementById('hamburgerMenu');
-      if (!navMenu.contains(e.target) && !hamburger.contains(e.target) && navMenu.classList.contains('visible')) {
-        logDebug('Closing navMenu on outside click');
-        navMenu.classList.remove('visible');
-      }
-    });
-    document.addEventListener('touchstart', (e) => {
-      const navMenu = document.getElementById('navMenu');
-      const hamburger = document.getElementById('hamburgerMenu');
-      if (!navMenu.contains(e.target) && !hamburger.contains(e.target) && navMenu.classList.contains('visible')) {
-        logDebug('Closing navMenu on outside touch');
-        navMenu.classList.remove('visible');
-      }
-    });
     function openDeathReports() {
       if (!isWhitelisted(userEmail)) {
         showError('Nav piešķirtas izmantošanas tiesības, sazinieties ar administratoru e-pasts: albertsgarkajs@gmail.com');
         return;
       }
       logDebug('Opening Death Reports modal');
-      const navMenu = document.getElementById('navMenu');
-      navMenu.classList.remove('visible');
+      document.getElementById('navMenu').style.display = 'none';
       logDebug('Hid navMenu before opening Death Reports modal');
       const modal = document.getElementById('deathReportsModal');
       const iframe = document.getElementById('deathReportsIframe');
@@ -379,7 +293,7 @@
       modal.style.display = 'flex';
       iframe.onload = () => {
         logDebug('Death Reports iframe loaded successfully');
-        injectModalTableStyles(iframe);
+        injectModalTableStyles(iframe, 'deathReportsIframe');
       };
       iframe.onerror = () => {
         logDebug('Error loading Death Reports iframe');
@@ -392,6 +306,10 @@
       const iframe = document.getElementById('deathReportsIframe');
       modal.style.display = 'none';
       iframe.src = '';
+      if (isWhitelisted(userEmail)) {
+        document.getElementById('navMenu').style.display = 'flex';
+        logDebug('Restored navMenu for whitelisted user after closing Death Reports modal');
+      }
     }
     function openBirthReports() {
       if (!isWhitelisted(userEmail)) {
@@ -399,8 +317,7 @@
         return;
       }
       logDebug('Opening Birth Reports modal');
-      const navMenu = document.getElementById('navMenu');
-      navMenu.classList.remove('visible');
+      document.getElementById('navMenu').style.display = 'none';
       logDebug('Hid navMenu before opening Birth Reports modal');
       const modal = document.getElementById('birthReportsModal');
       const iframe = document.getElementById('birthReportsIframe');
@@ -410,7 +327,7 @@
       modal.style.display = 'flex';
       iframe.onload = () => {
         logDebug('Birth Reports iframe loaded successfully');
-        injectModalTableStyles(iframe);
+        injectModalTableStyles(iframe, 'birthReportsIframe');
       };
       iframe.onerror = () => {
         logDebug('Error loading Birth Reports iframe');
@@ -423,6 +340,10 @@
       const iframe = document.getElementById('birthReportsIframe');
       modal.style.display = 'none';
       iframe.src = '';
+      if (isWhitelisted(userEmail)) {
+        document.getElementById('navMenu').style.display = 'flex';
+        logDebug('Restored navMenu for whitelisted user after closing Birth Reports modal');
+      }
     }
     function openAcceptanceActs() {
       if (!isWhitelisted(userEmail)) {
@@ -430,8 +351,7 @@
         return;
       }
       logDebug('Opening Acceptance Acts modal');
-      const navMenu = document.getElementById('navMenu');
-      navMenu.classList.remove('visible');
+      document.getElementById('navMenu').style.display = 'none';
       logDebug('Hid navMenu before opening Acceptance Acts modal');
       const modal = document.getElementById('acceptanceActsModal');
       const iframe = document.getElementById('acceptanceActsIframe');
@@ -441,7 +361,7 @@
       modal.style.display = 'flex';
       iframe.onload = () => {
         logDebug('Acceptance Acts iframe loaded successfully');
-        injectModalTableStyles(iframe);
+        injectModalTableStyles(iframe, 'acceptanceActsIframe');
       };
       iframe.onerror = () => {
         logDebug('Error loading Acceptance Acts iframe');
@@ -454,6 +374,10 @@
       const iframe = document.getElementById('acceptanceActsIframe');
       modal.style.display = 'none';
       iframe.src = '';
+      if (isWhitelisted(userEmail)) {
+        document.getElementById('navMenu').style.display = 'flex';
+        logDebug('Restored navMenu for whitelisted user after closing Acceptance Acts modal');
+      }
     }
     function logDebug(message) {
       console.log('[index-mobile.html] ' + message);
@@ -464,46 +388,6 @@
       document.getElementById('loginContainer').classList.remove('hidden');
       document.getElementById('loadingOverlay').classList.add('hidden');
       document.getElementById('loadingOverlay').style.display = 'none';
-    }
-    function injectModalTableStyles(iframe) {
-      try {
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        if (!doc) {
-          throw new Error('Cannot access modal iframe document');
-        }
-        const style = doc.createElement('style');
-        style.textContent = `
-          .table-container {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-          }
-          table {
-            width: 100%;
-            max-width: 100%;
-            border-collapse: collapse;
-            font-size: 9px !important;
-            white-space: normal;
-            word-break: break-all;
-          }
-          th, td {
-            border: 1px solid #ddd;
-            padding: 3px;
-            font-size: 9px !important;
-            min-width: 50px;
-            max-width: 100px;
-            text-align: left;
-          }
-          th {
-            background: #f9f9f9;
-            font-weight: bold;
-          }
-        `;
-        doc.head.appendChild(style);
-        logDebug('Injected table styles into modal iframe');
-      } catch (error) {
-        console.error('[index-mobile.html] Failed to inject modal table styles: ' + error.message);
-      }
     }
     function handleCredentialResponse(response) {
       logDebug('Google OAuth initiated: ' + JSON.stringify(response));
@@ -566,7 +450,7 @@
           logDebug('Sign-out successful: ' + JSON.stringify(result));
           localStorage.removeItem('lastReload');
           userEmail = '';
-          document.getElementById('navMenu').classList.remove('visible');
+          document.getElementById('navMenu').style.display = 'none';
           document.getElementById('appIframe').style.display = 'none';
           document.getElementById('appIframe').src = '';
           document.getElementById('loginContainer').classList.remove('hidden');
@@ -583,7 +467,7 @@
         showError('Kļūda izrakstoties: ' + error.message);
         localStorage.removeItem('lastReload');
         userEmail = '';
-        document.getElementById('navMenu').classList.remove('visible');
+        document.getElementById('navMenu').style.display = 'none';
         document.getElementById('appIframe').style.display = 'none';
         document.getElementById('appIframe').src = '';
         document.getElementById('loginContainer').classList.remove('hidden');
@@ -592,6 +476,117 @@
         closeDeathReportsModal();
         closeBirthReportsModal();
         closeAcceptanceActsModal();
+      }
+    }
+    function injectTableStyles(iframe) {
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        if (!doc) {
+          throw new Error('Cannot access iframe document');
+        }
+        const style = doc.createElement('style');
+        style.textContent = `
+          table {
+            width: 100% !important;
+            max-width: 100% !important;
+            font-size: 8px !important;
+            border-collapse: collapse !important;
+            table-layout: auto !important;
+            overflow-x: auto !important;
+            display: block !important;
+          }
+          th, td {
+            padding: 4px !important;
+            border: 1px solid #ddd !important;
+            word-break: break-all !important;
+            white-space: normal !important;
+            min-width: 50px !important;
+            max-width: 150px !important;
+          }
+          th {
+            background: #f9f9f9 !important;
+            font-weight: bold !important;
+          }
+          .content {
+            overflow-x: auto !important;
+            max-width: 100% !important;
+          }
+          body {
+            overflow-x: hidden !important;
+            max-width: 100vw !important;
+          }
+        `;
+        doc.head.appendChild(style);
+        const tables = doc.querySelectorAll('table');
+        tables.forEach(table => {
+          table.style.width = '100%';
+          table.style.maxWidth = '100%';
+          table.style.fontSize = '8px';
+          table.style.tableLayout = 'auto';
+          table.style.display = 'block';
+          table.style.overflowX = 'auto';
+        });
+        logDebug('Injected responsive table styles into appIframe');
+      } catch (error) {
+        logDebug('Failed to inject table styles into appIframe: ' + error.message);
+      }
+    }
+    function injectModalTableStyles(iframe, iframeId) {
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        if (!doc) {
+          throw new Error('Cannot access iframe document for ' + iframeId);
+        }
+        const style = doc.createElement('style');
+        style.textContent = `
+          table {
+            width: 100% !important;
+            max-width: 100% !important;
+            font-size: 8px !important;
+            border-collapse: collapse !important;
+            table-layout: auto !important;
+            overflow-x: auto !important;
+            display: block !important;
+          }
+          th, td {
+            padding: 4px !important;
+            border: 1px solid #ddd !important;
+            word-break: break-all !important;
+            white-space: normal !important;
+            min-width: 50px !important;
+            max-width: 150px !important;
+          }
+          th {
+            background: #f9f9f9 !important;
+            font-weight: bold !important;
+          }
+          .content {
+            overflow-x: auto !important;
+            max-width: 100% !important;
+          }
+          body {
+            overflow-x: hidden !important;
+            max-width: 100vw !important;
+          }
+          form, div[role="form"] {
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow-x: auto !important;
+          }
+        `;
+        doc.head.appendChild(style);
+        const tables = doc.querySelectorAll('table');
+        tables.forEach(table => {
+          table.style.width = '100%';
+          table.style.maxWidth = '100%';
+          table.style.fontSize = '8px';
+          table.style.tableLayout = 'auto';
+          table.style.display = 'block';
+          table.style.overflowX = 'auto';
+        });
+        logDebug('Injected responsive table styles into ' + iframeId);
+      } catch (error) {
+        logDebug('Failed to inject table styles into ' + iframeId + ': ' + error.message);
       }
     }
     function injectButtons(iframe) {
@@ -618,19 +613,18 @@
           deathReportsButton.style.color = 'white';
           deathReportsButton.style.padding = '8px 12px';
           deathReportsButton.style.cursor = 'pointer';
-          deathReportsButton.style.fontSize = '10px';
+          deathReportsButton.style.fontSize = '14px';
           deathReportsButton.style.fontWeight = 'bold';
           deathReportsButton.style.lineHeight = '1.5';
-          deathReportsButton.style.transition = 'background 0.2s';
+          deathReportsButton.style.transition = 'background 0.2s, transform 0.2s';
           deathReportsButton.style.margin = '0 2px';
-          deathReportsButton.style.width = '100%';
-          deathReportsButton.style.borderRadius = '4px';
-          deathReportsButton.style.touchAction = 'manipulation';
           deathReportsButton.onmouseover = () => {
             deathReportsButton.style.backgroundColor = '#32CD32';
+            deathReportsButton.style.transform = 'translateY(-2px)';
           };
           deathReportsButton.onmouseout = () => {
             deathReportsButton.style.backgroundColor = 'none';
+            deathReportsButton.style.transform = 'none';
           };
           deathReportsButton.onmousedown = () => {
             deathReportsButton.style.backgroundColor = '#2E8B57';
@@ -648,19 +642,18 @@
           birthReportsButton.style.color = 'white';
           birthReportsButton.style.padding = '8px 12px';
           birthReportsButton.style.cursor = 'pointer';
-          birthReportsButton.style.fontSize = '10px';
+          birthReportsButton.style.fontSize = '14px';
           birthReportsButton.style.fontWeight = 'bold';
           birthReportsButton.style.lineHeight = '1.5';
-          birthReportsButton.style.transition = 'background 0.2s';
+          birthReportsButton.style.transition = 'background 0.2s, transform 0.2s';
           birthReportsButton.style.margin = '0 2px';
-          birthReportsButton.style.width = '100%';
-          birthReportsButton.style.borderRadius = '4px';
-          birthReportsButton.style.touchAction = 'manipulation';
           birthReportsButton.onmouseover = () => {
             birthReportsButton.style.backgroundColor = '#32CD32';
+            birthReportsButton.style.transform = 'translateY(-2px)';
           };
           birthReportsButton.onmouseout = () => {
             birthReportsButton.style.backgroundColor = 'none';
+            birthReportsButton.style.transform = 'none';
           };
           birthReportsButton.onmousedown = () => {
             birthReportsButton.style.backgroundColor = '#2E8B57';
@@ -678,19 +671,18 @@
           acceptanceActsButton.style.color = 'white';
           acceptanceActsButton.style.padding = '8px 12px';
           acceptanceActsButton.style.cursor = 'pointer';
-          acceptanceActsButton.style.fontSize = '10px';
+          acceptanceActsButton.style.fontSize = '14px';
           acceptanceActsButton.style.fontWeight = 'bold';
           acceptanceActsButton.style.lineHeight = '1.5';
-          acceptanceActsButton.style.transition = 'background 0.2s';
+          acceptanceActsButton.style.transition = 'background 0.2s, transform 0.2s';
           acceptanceActsButton.style.margin = '0 2px';
-          acceptanceActsButton.style.width = '100%';
-          acceptanceActsButton.style.borderRadius = '4px';
-          acceptanceActsButton.style.touchAction = 'manipulation';
           acceptanceActsButton.onmouseover = () => {
             acceptanceActsButton.style.backgroundColor = '#32CD32';
+            acceptanceActsButton.style.transform = 'translateY(-2px)';
           };
           acceptanceActsButton.onmouseout = () => {
             acceptanceActsButton.style.backgroundColor = 'none';
+            acceptanceActsButton.style.transform = 'none';
           };
           acceptanceActsButton.onmousedown = () => {
             acceptanceActsButton.style.backgroundColor = '#2E8B57';
@@ -708,19 +700,18 @@
           signOutButton.style.color = 'white';
           signOutButton.style.padding = '8px 12px';
           signOutButton.style.cursor = 'pointer';
-          signOutButton.style.fontSize = '10px';
+          signOutButton.style.fontSize = '14px';
           signOutButton.style.fontWeight = 'bold';
           signOutButton.style.lineHeight = '1.5';
-          signOutButton.style.transition = 'background 0.2s';
+          signOutButton.style.transition = 'background 0.2s, transform 0.2s';
           signOutButton.style.margin = '0 2px';
-          signOutButton.style.width = '100%';
-          signOutButton.style.borderRadius = '4px';
-          signOutButton.style.touchAction = 'manipulation';
           signOutButton.onmouseover = () => {
             signOutButton.style.backgroundColor = '#32CD32';
+            signOutButton.style.transform = 'translateY(-2px)';
           };
           signOutButton.onmouseout = () => {
             signOutButton.style.backgroundColor = 'none';
+            signOutButton.style.transform = 'none';
           };
           signOutButton.onmousedown = () => {
             signOutButton.style.backgroundColor = '#2E8B57';
@@ -729,8 +720,8 @@
             signOutButton.style.backgroundColor = '#32CD32';
           };
           acceptanceActsButton.insertAdjacentElement('afterend', signOutButton);
-          document.getElementById('navMenu').classList.remove('visible');
-          logDebug('Successfully injected buttons into iframe nav');
+          document.getElementById('navMenu').style.display = 'none';
+          logDebug('Successfully injected Nāves ziņojumi, Dzimšanas ziņojumi, Pieņemšanas akti, and Iziet buttons into iframe nav');
         } else {
           const signOutButton = doc.createElement('button');
           signOutButton.id = 'signOutButton';
@@ -741,19 +732,18 @@
           signOutButton.style.color = 'white';
           signOutButton.style.padding = '8px 12px';
           signOutButton.style.cursor = 'pointer';
-          signOutButton.style.fontSize = '10px';
+          signOutButton.style.fontSize = '14px';
           signOutButton.style.fontWeight = 'bold';
           signOutButton.style.lineHeight = '1.5';
-          signOutButton.style.transition = 'background 0.2s';
+          signOutButton.style.transition = 'background 0.2s, transform 0.2s';
           signOutButton.style.margin = '0 2px';
-          signOutButton.style.width = '100%';
-          signOutButton.style.borderRadius = '4px';
-          signOutButton.style.touchAction = 'manipulation';
           signOutButton.onmouseover = () => {
             signOutButton.style.backgroundColor = '#32CD32';
+            signOutButton.style.transform = 'translateY(-2px)';
           };
           signOutButton.onmouseout = () => {
             signOutButton.style.backgroundColor = 'none';
+            signOutButton.style.transform = 'none';
           };
           signOutButton.onmousedown = () => {
             signOutButton.style.backgroundColor = '#2E8B57';
@@ -762,44 +752,10 @@
             signOutButton.style.backgroundColor = '#32CD32';
           };
           newEntryButton.insertAdjacentElement('afterend', signOutButton);
-          document.getElementById('navMenu').classList.remove('visible');
+          document.getElementById('navMenu').style.display = 'none';
           logDebug('Injected only Iziet button for non-whitelisted user');
         }
         try {
-          const style = doc.createElement('style');
-          style.textContent = `
-            .table-container {
-              width: 100%;
-              overflow-x: auto;
-              -webkit-overflow-scrolling: touch;
-            }
-            table {
-              width: 100%;
-              max-width: 100%;
-              border-collapse: collapse;
-              font-size: 9px !important;
-              white-space: normal;
-              word-break: break-all;
-            }
-            th, td {
-              border: 1px solid #ddd;
-              padding: 3px;
-              font-size: 9px !important;
-              min-width: 50px;
-              max-width: 100px;
-              text-align: left;
-            }
-            th {
-              background: #f9f9f9;
-              font-weight: bold;
-            }
-            .content {
-              overflow-x: auto;
-              -webkit-overflow-scrolling: touch;
-            }
-          `;
-          doc.head.appendChild(style);
-          logDebug('Injected table styles into main iframe');
           const script = doc.createElement('script');
           script.textContent = `
             function sanitize(str) {
@@ -817,21 +773,21 @@
                 const data = window.animalData?.[sectionName];
                 if (!data) {
                   console.error('[iframe] Data not found for section: ' + sectionName);
-                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 9px; text-align: center;">Kļūda: Dati nav atrasti sadaļai ' + sectionName + '</div>';
+                  document.querySelector('.content').innerHTML += '<div class="error-message">Kļūda: Dati nav atrasti sadaļai ' + sectionName + '</div>';
                   return;
                 }
                 const headers = data.headers;
                 const row = data.rows[rowIndex];
                 if (!row) {
                   console.error('[iframe] Row not found at index: ' + rowIndex);
-                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 9px; text-align: center;">Kļūda: Rinda nav atrasta index ' + rowIndex + '</div>';
+                  document.querySelector('.content').innerHTML += '<div class="error-message">Kļūda: Rinda nav atrasta index ' + rowIndex + '</div>';
                   return;
                 }
                 const modal = document.getElementById('fullViewModal');
                 const content = document.getElementById('fullViewContent');
                 if (!modal || !content) {
                   console.error('[iframe] Modal or content element not found');
-                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 9px; text-align: center;">Kļūda: Modālis vai satura elements nav atrasts</div>';
+                  document.querySelector('.content').innerHTML += '<div class="error-message">Kļūda: Modālis vai satura elements nav atrasts</div>';
                   return;
                 }
                 window.currentEditingData = { sheetName: sectionName, rowIndex: rowIndex + 1, headers: headers };
@@ -847,69 +803,67 @@
                 console.log('[iframe] animalName: ' + animalName);
                 console.log('[iframe] Headers length: ' + headers.length);
                 console.log('[iframe] Row length: ' + row.length);
-                let html = '<div class="table-container" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">';
-                html += '<h3 style="margin-bottom: 15px; font-size: 14px; text-align: center;">Dzīvnieka detalizēts apraksts</h3>';
+                let html = '<h3 style="margin-bottom: 15px; font-size: 16px;">Dzīvnieka detalizēts apraksts</h3>';
                 if (photoUrl && photoUrl.match(/^https?:\/\/[^\s<>"']+$/)) {
                   html += '<div style="position: relative; width: 100%; max-width: 300px; margin: 0 auto 15px auto; text-align: center;">';
                   html += '<img src="' + photoUrl + '" alt="' + animalName + '" class="animal-photo" style="max-width: 100%; height: auto; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: block; margin: 0 auto;" onload="this.style.display=\\'block\\'; this.nextElementSibling.style.display=\\'none\\';" onerror="this.style.display=\\'none\\'; this.nextElementSibling.style.display=\\'block\\';">';
-                  html += '<div class="no-photo" style="display: none; color: #666; font-style: italic; text-align: center; font-size: 9px;">Attēls nav pieejams vai nav derīgs</div>';
+                  html += '<div class="no-photo" style="display: none; color: #666; font-style: italic; text-align: center; font-size: 12px;">Attēls nav pieejams vai nav derīgs</div>';
                   html += '</div>';
                 } else {
-                  html += '<div class="no-photo" style="color: #666; font-style: italic; text-align: center; margin-bottom: 15px; font-size: 9px;">Nav pieejams foto</div>';
+                  html += '<div class="no-photo" style="color: #666; font-style: italic; text-align: center; margin-bottom: 15px; font-size: 12px;">Nav pieejams foto</div>';
                 }
-                html += '<h4 style="text-align: center; margin-bottom: 15px; font-size: 12px;">' + animalName + '</h4>';
-                html += '<table style="width: 100%; max-width: 100%; border-collapse: collapse; font-size: 9px !important; white-space: normal; word-break: break-all;"><tbody>';
+                html += '<h4 style="text-align: center; margin-bottom: 15px; font-size: 14px;">' + animalName + '</h4>';
+                html += '<table style="width: 100%; max-width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 10px;"><tbody>';
                 for (let i = 0; i < headers.length; i++) {
                   if (headers[i] === 'Dzīvnieka foto' || headers[i] === 'Dzīvnieka nosaukums latviski') continue;
                   const header = sanitize(headers[i] || '');
                   const value = sanitize(row[i] || '');
                   html += '<tr>';
-                  html += '<th style="text-align: left; border: 1px solid #ddd; padding: 3px; width: 40%; background: #f9f9f9; font-size: 9px !important; min-width: 50px; max-width: 100px;">' + header + '</th>';
-                  html += '<td style="border: 1px solid #ddd; padding: 3px; font-size: 9px !important; min-width: 50px; max-width: 100px;">' + value + '</td>';
+                  html += '<th style="text-align: left; border: 1px solid #ddd; padding: 6px; width: 40%; background: #f9f9f9; font-size: 10px; word-break: break-all;">' + header + '</th>';
+                  html += '<td style="border: 1px solid #ddd; padding: 6px; font-size: 10px; word-break: break-all;">' + value + '</td>';
                   html += '</tr>';
                 }
                 html += '</tbody></table>';
-                html += '</div>';
                 if (isWhitelisted(userEmail)) {
-                  html += '<button class="btn-edit" onclick="toggleEditForm()" style="margin: 15px auto; background: #2E8B57; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; display: block; font-size: 12px; touch-action: manipulation;">Labot ierakstu</button>';
-                  html += '<div id="editForm" class="edit-form" style="margin: 15px; display: none;">';
-                  html += '<h4 style="margin-bottom: 10px; font-size: 12px;">Labot ierakstu</h4>';
+                  html += '<button class="btn-edit" onclick="toggleEditForm()" style="margin: 15px auto; background: #2E8B57; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; display: block; font-size: 12px;">Labot ierakstu</button>';
+                  html += '<div id="editForm" class="edit-form" style="margin-top: 15px; display: none;">';
+                  html += '<h4 style="margin-bottom: 10px; font-size: 14px;">Labot ierakstu</h4>';
                   html += '<form id="edit-entry-form" onsubmit="return submitEditForm();">';
                   for (let i = 0; i < headers.length; i++) {
                     const header = sanitize(headers[i] || '');
                     const value = sanitize(row[i] || '');
-                    html += '<div class="form-group" style="margin-bottom: 12px;">';
-                    html += '<label for="edit-' + i + '" style="display: block; margin-bottom: 5px; font-size: 9px;">' + header + '</label>';
+                    html += '<div class="form-group" style="margin-bottom: 10px;">';
+                    html += '<label for="edit-' + i + '" style="display: block; margin-bottom: 5px; font-size: 12px;">' + header + '</label>';
                     if (header === 'Karantīna') {
-                      html += '<select id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px;">';
+                      html += '<select id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">';
                       html += '<option value="">Izvēlieties statusu</option>';
                       html += '<option value="Jā"' + (value === 'Jā' ? ' selected' : '') + '>Jā</option>';
                       html += '<option value="Nē"' + (value === 'Nē' ? ' selected' : '') + '>Nē</option>';
                       html += '</select>';
                     } else if (header.includes('datums')) {
-                      html += '<input type="date" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px;">';
+                      html += '<input type="date" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">';
                     } else if (header === 'Dzīvnieku skaits') {
-                      html += '<input type="number" id="edit-' + i + '" name="' + header + '" value="' + value + '" min="1" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px;">';
+                      html += '<input type="number" id="edit-' + i + '" name="' + header + '" value="' + value + '" min="1" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">';
                     } else if (header === 'Ārstēšana' || header === 'Piezīmes') {
-                      html += '<textarea id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-size: 9px;" rows="3">' + value + '</textarea>';
+                      html += '<textarea id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-size: 12px;" rows="3">' + value + '</textarea>';
                     } else if (header === 'Dzīvnieka foto') {
-                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px;" placeholder="Ievadiet attēla URL">';
+                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" placeholder="Ievadiet attēla URL">';
                     } else {
-                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px;">';
+                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">';
                     }
                     html += '</div>';
                   }
-                  html += '<button type="submit" style="background: #2E8B57; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; touch-action: manipulation;">Saglabāt izmaiņas</button>';
-                  html += '<button type="button" onclick="toggleEditForm()" style="margin-left: 10px; background: #ccc; color: black; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; touch-action: manipulation;">Atcelt</button>';
+                  html += '<button type="submit" style="background: #2E8B57; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Saglabāt izmaiņas</button>';
+                  html += '<button type="button" onclick="toggleEditForm()" style="margin-left: 10px; background: #ccc; color: black; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Atcelt</button>';
                   html += '</form>';
                   html += '</div>';
                 }
-                content.innerHTML = '<span id="closeFullView" onclick="closeFullView()" style="position: fixed; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #2E8B57; padding: 8px; touch-action: manipulation; z-index: 2600;">&times;</span>' + html;
+                content.innerHTML = '<span id="closeFullView" onclick="closeFullView()" style="position: absolute; top: 10px; right: 15px; font-size: 20px; cursor: pointer; z-index: 2100;">&times;</span>' + html;
                 modal.style.display = 'block';
                 console.log('[iframe] Modal content set successfully');
               } catch (e) {
                 console.error('[iframe] Error in openFullView: ' + e.message);
-                document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 9px; text-align: center;">Kļūda atverot detalizēto skatu: ' + e.message + '</div>';
+                document.querySelector('.content').innerHTML += '<div class="error-message">Kļūda atverot detalizēto skatu: ' + e.message + '</div>';
               }
             };
           `;
@@ -921,14 +875,14 @@
       } catch (error) {
         console.error('[index-mobile.html] Failed to inject buttons: ' + error.message);
         if (isWhitelisted(userEmail)) {
-          document.getElementById('navMenu').classList.remove('visible');
-          logDebug('Hiding navMenu, buttons injected in iframe for whitelisted user');
+          document.getElementById('navMenu').style.display = 'flex';
+          logDebug('Showing navMenu with all buttons for whitelisted user');
         } else {
           document.getElementById('deathReportsButton').style.display = 'none';
           document.getElementById('birthReportsButton').style.display = 'none';
           document.getElementById('acceptanceActsButton').style.display = 'none';
-          document.getElementById('navMenu').classList.remove('visible');
-          logDebug('Hiding navMenu, only Iziet button injected for non-whitelisted user');
+          document.getElementById('navMenu').style.display = 'flex';
+          logDebug('Showing navMenu with only Iziet button for non-whitelisted user');
         }
       }
     }
@@ -974,19 +928,20 @@
           iframe.style.display = 'block';
           iframe.onload = () => {
             logDebug('Iframe loaded successfully');
+            injectTableStyles(iframe);
             injectButtons(iframe);
             if (isWhitelisted(userEmail)) {
-              document.getElementById('navMenu').classList.remove('visible');
-              document.getElementById('deathReportsButton').style.display = 'block';
-              document.getElementById('birthReportsButton').style.display = 'block';
-              document.getElementById('acceptanceActsButton').style.display = 'block';
-              logDebug('Iframe buttons injected for whitelisted user');
+              document.getElementById('navMenu').style.display = 'flex';
+              document.getElementById('deathReportsButton').style.display = 'inline-block';
+              document.getElementById('birthReportsButton').style.display = 'inline-block';
+              document.getElementById('acceptanceActsButton').style.display = 'inline-block';
+              logDebug('Showing navMenu with all buttons for whitelisted user');
             } else {
+              document.getElementById('navMenu').style.display = 'flex';
               document.getElementById('deathReportsButton').style.display = 'none';
               document.getElementById('birthReportsButton').style.display = 'none';
               document.getElementById('acceptanceActsButton').style.display = 'none';
-              document.getElementById('navMenu').classList.remove('visible');
-              logDebug('Iframe buttons injected for non-whitelisted user');
+              logDebug('Showing navMenu with only Iziet button for non-whitelisted user');
             }
             document.getElementById('loadingOverlay').classList.add('hidden');
             setTimeout(() => {
@@ -999,7 +954,7 @@
         } else {
           logDebug('User is not authenticated, showing login container');
           document.getElementById('loginContainer').classList.remove('hidden');
-          document.getElementById('navMenu').classList.remove('visible');
+          document.getElementById('navMenu').style.display = 'none';
           iframe.style.display = 'none';
           document.getElementById('loadingOverlay').classList.add('hidden');
           document.getElementById('loadingOverlay').style.display = 'none';
