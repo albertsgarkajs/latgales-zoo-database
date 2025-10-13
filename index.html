@@ -11,6 +11,7 @@
       font-family: 'Segoe UI', Verdana, sans-serif;
       background: #e8f5e9;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
@@ -20,22 +21,87 @@
       color: #2E8B57;
       text-align: center;
     }
+    #errorMessage {
+      color: red;
+      font-size: 16px;
+      text-align: center;
+      max-width: 80%;
+      margin-top: 20px;
+    }
+    #manualLinks {
+      margin-top: 20px;
+      font-size: 14px;
+      text-align: center;
+    }
+    #manualLinks a {
+      color: #2E8B57;
+      text-decoration: none;
+      margin: 0 10px;
+    }
+    #manualLinks a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
   <div id="loadingMessage">Ielādējam...</div>
+  <div id="errorMessage" style="display: none;"></div>
+  <div id="manualLinks" style="display: none;">
+    <p>Nevarēja automātiski novirzīt. Izvēlieties versiju:</p>
+    <a href="/index-pc.html">PC versija</a> | <a href="/index-mobile.html">Mobilā versija</a>
+  </div>
   <script>
     function isMobileDevice() {
-      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && window.innerWidth <= 768;
+      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isSmallScreen = window.innerWidth <= 768;
+      console.log('[index.html] User Agent: ' + navigator.userAgent);
+      console.log('[index.html] Window Width: ' + window.innerWidth);
+      console.log('[index.html] isMobileUA: ' + isMobileUA + ', isSmallScreen: ' + isSmallScreen);
+      return isMobileUA && isSmallScreen;
     }
-    console.log('[index.html] Checking device type');
-    if (isMobileDevice()) {
-      console.log('[index.html] Redirecting to mobile version');
-      window.location.replace('index-mobile.html');
-    } else {
-      console.log('[index.html] Redirecting to PC version');
-      window.location.replace('index-pc.html');
+
+    function showError(message) {
+      console.error('[index.html] ' + message);
+      document.getElementById('loadingMessage').style.display = 'none';
+      document.getElementById('errorMessage').textContent = message;
+      document.getElementById('errorMessage').style.display = 'block';
+      document.getElementById('manualLinks').style.display = 'block';
     }
+
+    function performRedirect() {
+      console.log('[index.html] Checking device type');
+      const lastRedirect = localStorage.getItem('lastRedirect');
+      const now = Date.now();
+      if (lastRedirect && now - parseInt(lastRedirect) < 1000) {
+        showError('Kļūda: Novirzīšana bloķēta, lai novērstu cilpu. Lūdzu, izvēlieties versiju zemāk.');
+        return;
+      }
+      localStorage.setItem('lastRedirect', now);
+      const targetUrl = isMobileDevice() ? '/index-mobile.html' : '/index-pc.html';
+      console.log('[index.html] Attempting to redirect to: ' + targetUrl);
+      fetch(targetUrl, { method: 'HEAD', cache: 'no-store' })
+        .then(response => {
+          if (response.ok) {
+            console.log('[index.html] Target URL exists, performing redirect');
+            window.location.replace(targetUrl);
+          } else {
+            showError('Kļūda: Nevar atrast ' + targetUrl + '. Lūdzu, izvēlieties versiju zemāk.');
+          }
+        })
+        .catch(error => {
+          showError('Kļūda pārbaudot ' + targetUrl + ': ' + error.message);
+        });
+      setTimeout(() => {
+        if (window.location.pathname === '/index.html' || window.location.pathname === '/') {
+          showError('Novirzīšana neizdevās. Lūdzu, izvēlieties versiju zemāk.');
+        }
+      }, 3000);
+    }
+
+    window.onload = () => {
+      console.log('[index.html] Window loaded, initiating redirect');
+      performRedirect();
+    };
   </script>
 </body>
 </html>
