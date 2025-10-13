@@ -16,6 +16,18 @@
       "dest": "/api/auth.js"
     },
     {
+      "src": "/index-pc.html",
+      "dest": "/index-pc.html"
+    },
+    {
+      "src": "/index-mobile.html",
+      "dest": "/index-mobile.html"
+    },
+    {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
