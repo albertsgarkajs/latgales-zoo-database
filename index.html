@@ -69,20 +69,31 @@
     }
 
     function performRedirect() {
+      const currentPath = window.location.pathname;
+      console.log('[index.html] Current Path: ' + currentPath);
+      if (currentPath === '/index-pc.html' || currentPath === '/index-mobile.html') {
+        console.log('[index.html] Already on target page, skipping redirect');
+        document.getElementById('loadingMessage').style.display = 'none';
+        document.getElementById('errorMessage').style.display = 'none';
+        document.getElementById('manualLinks').style.display = 'none';
+        return;
+      }
+
       console.log('[index.html] Checking device type');
       const lastRedirect = localStorage.getItem('lastRedirect');
       const now = Date.now();
-      if (lastRedirect && now - parseInt(lastRedirect) < 1000) {
+      if (lastRedirect && now - parseInt(lastRedirect) < 2000) {
         showError('Kļūda: Novirzīšana bloķēta, lai novērstu cilpu. Lūdzu, izvēlieties versiju zemāk.');
         return;
       }
-      localStorage.setItem('lastRedirect', now);
+
       const targetUrl = isMobileDevice() ? '/index-mobile.html' : '/index-pc.html';
       console.log('[index.html] Attempting to redirect to: ' + targetUrl);
       fetch(targetUrl, { method: 'HEAD', cache: 'no-store' })
         .then(response => {
           if (response.ok) {
             console.log('[index.html] Target URL exists, performing redirect');
+            localStorage.setItem('lastRedirect', now);
             window.location.replace(targetUrl);
           } else {
             showError('Kļūda: Nevar atrast ' + targetUrl + '. Lūdzu, izvēlieties versiju zemāk.');
@@ -91,11 +102,12 @@
         .catch(error => {
           showError('Kļūda pārbaudot ' + targetUrl + ': ' + error.message);
         });
+
       setTimeout(() => {
         if (window.location.pathname === '/index.html' || window.location.pathname === '/') {
           showError('Novirzīšana neizdevās. Lūdzu, izvēlieties versiju zemāk.');
         }
-      }, 3000);
+      }, 5000);
     }
 
     window.onload = () => {
