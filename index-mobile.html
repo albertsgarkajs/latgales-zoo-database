@@ -204,12 +204,14 @@
     }
     #deathReportsModalContent, #birthReportsModalContent, #acceptanceActsModalContent {
       background: #ffffff;
-      width: 90%;
+      width: 90vw;
       max-width: 600px;
-      height: 80%;
+      height: 80vh;
       position: relative;
       border-radius: 8px;
-      overflow: auto;
+      overflow-x: auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       box-sizing: border-box;
     }
     #deathReportsIframe, #birthReportsIframe, #acceptanceActsIframe {
@@ -232,9 +234,9 @@
       text-align: center;
       padding: 15px;
       display: none;
-      font-size: 14px;
+      font-size: 12px;
     }
-    /* Responsive Table Styling */
+    /* Responsive Table Styling for Main Content and openFullView */
     .table-container {
       width: 100%;
       overflow-x: auto;
@@ -243,36 +245,23 @@
     }
     table {
       width: 100%;
+      max-width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
-      margin-top: 15px;
+      font-size: 10px;
+      white-space: normal;
+      word-wrap: break-word;
     }
     th, td {
       border: 1px solid #ddd;
-      padding: 6px;
+      padding: 4px;
       text-align: left;
-      font-size: 12px;
-      min-width: 100px;
+      font-size: 10px;
+      min-width: 60px;
+      max-width: 150px;
     }
     th {
       background: #f9f9f9;
       font-weight: bold;
-    }
-    /* Ensure iframe tables are responsive */
-    iframe table {
-      width: 100%;
-      max-width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-    iframe th, iframe td {
-      border: 1px solid #ddd;
-      padding: 6px;
-      font-size: 12px;
-      min-width: 80px;
-    }
-    iframe th {
-      background: #f9f9f9;
     }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -358,7 +347,6 @@
       logDebug('Hamburger touchstart triggered');
       toggleNavMenu();
     });
-    // Close menu when clicking outside
     document.addEventListener('click', (e) => {
       const navMenu = document.getElementById('navMenu');
       const hamburger = document.getElementById('hamburgerMenu');
@@ -390,6 +378,7 @@
       toggleNavMenu();
       iframe.onload = () => {
         logDebug('Death Reports iframe loaded successfully');
+        injectModalTableStyles(iframe);
       };
       iframe.onerror = () => {
         logDebug('Error loading Death Reports iframe');
@@ -418,6 +407,7 @@
       toggleNavMenu();
       iframe.onload = () => {
         logDebug('Birth Reports iframe loaded successfully');
+        injectModalTableStyles(iframe);
       };
       iframe.onerror = () => {
         logDebug('Error loading Birth Reports iframe');
@@ -446,6 +436,7 @@
       toggleNavMenu();
       iframe.onload = () => {
         logDebug('Acceptance Acts iframe loaded successfully');
+        injectModalTableStyles(iframe);
       };
       iframe.onerror = () => {
         logDebug('Error loading Acceptance Acts iframe');
@@ -468,6 +459,46 @@
       document.getElementById('loginContainer').classList.remove('hidden');
       document.getElementById('loadingOverlay').classList.add('hidden');
       document.getElementById('loadingOverlay').style.display = 'none';
+    }
+    function injectModalTableStyles(iframe) {
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        if (!doc) {
+          throw new Error('Cannot access modal iframe document');
+        }
+        const style = doc.createElement('style');
+        style.textContent = `
+          .table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+          }
+          table {
+            width: 100%;
+            max-width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+            white-space: normal;
+            word-wrap: break-word;
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 4px;
+            font-size: 10px;
+            min-width: 60px;
+            max-width: 120px;
+            text-align: left;
+          }
+          th {
+            background: #f9f9f9;
+            font-weight: bold;
+          }
+        `;
+        doc.head.appendChild(style);
+        logDebug('Injected table styles into modal iframe');
+      } catch (error) {
+        console.error('[index-mobile.html] Failed to inject modal table styles: ' + error.message);
+      }
     }
     function handleCredentialResponse(response) {
       logDebug('Google OAuth initiated: ' + JSON.stringify(response));
@@ -580,9 +611,9 @@
           deathReportsButton.style.background = 'none';
           deathReportsButton.style.border = 'none';
           deathReportsButton.style.color = 'white';
-          deathReportsButton.style.padding = '12px 16px';
+          deathReportsButton.style.padding = '8px 12px';
           deathReportsButton.style.cursor = 'pointer';
-          deathReportsButton.style.fontSize = '12px';
+          deathReportsButton.style.fontSize = '10px';
           deathReportsButton.style.fontWeight = 'bold';
           deathReportsButton.style.lineHeight = '1.5';
           deathReportsButton.style.transition = 'background 0.2s';
@@ -610,9 +641,9 @@
           birthReportsButton.style.background = 'none';
           birthReportsButton.style.border = 'none';
           birthReportsButton.style.color = 'white';
-          birthReportsButton.style.padding = '12px 16px';
+          birthReportsButton.style.padding = '8px 12px';
           birthReportsButton.style.cursor = 'pointer';
-          birthReportsButton.style.fontSize = '12px';
+          birthReportsButton.style.fontSize = '10px';
           birthReportsButton.style.fontWeight = 'bold';
           birthReportsButton.style.lineHeight = '1.5';
           birthReportsButton.style.transition = 'background 0.2s';
@@ -640,9 +671,9 @@
           acceptanceActsButton.style.background = 'none';
           acceptanceActsButton.style.border = 'none';
           acceptanceActsButton.style.color = 'white';
-          acceptanceActsButton.style.padding = '12px 16px';
+          acceptanceActsButton.style.padding = '8px 12px';
           acceptanceActsButton.style.cursor = 'pointer';
-          acceptanceActsButton.style.fontSize = '12px';
+          acceptanceActsButton.style.fontSize = '10px';
           acceptanceActsButton.style.fontWeight = 'bold';
           acceptanceActsButton.style.lineHeight = '1.5';
           acceptanceActsButton.style.transition = 'background 0.2s';
@@ -670,9 +701,9 @@
           signOutButton.style.background = 'none';
           signOutButton.style.border = 'none';
           signOutButton.style.color = 'white';
-          signOutButton.style.padding = '12px 16px';
+          signOutButton.style.padding = '8px 12px';
           signOutButton.style.cursor = 'pointer';
-          signOutButton.style.fontSize = '12px';
+          signOutButton.style.fontSize = '10px';
           signOutButton.style.fontWeight = 'bold';
           signOutButton.style.lineHeight = '1.5';
           signOutButton.style.transition = 'background 0.2s';
@@ -703,9 +734,9 @@
           signOutButton.style.background = 'none';
           signOutButton.style.border = 'none';
           signOutButton.style.color = 'white';
-          signOutButton.style.padding = '12px 16px';
+          signOutButton.style.padding = '8px 12px';
           signOutButton.style.cursor = 'pointer';
-          signOutButton.style.fontSize = '12px';
+          signOutButton.style.fontSize = '10px';
           signOutButton.style.fontWeight = 'bold';
           signOutButton.style.lineHeight = '1.5';
           signOutButton.style.transition = 'background 0.2s';
@@ -732,17 +763,26 @@
         try {
           const style = doc.createElement('style');
           style.textContent = `
+            .table-container {
+              width: 100%;
+              overflow-x: auto;
+              -webkit-overflow-scrolling: touch;
+            }
             table {
               width: 100%;
               max-width: 100%;
               border-collapse: collapse;
-              font-size: 12px;
+              font-size: 10px;
+              white-space: normal;
+              word-wrap: break-word;
             }
             th, td {
               border: 1px solid #ddd;
-              padding: 6px;
-              font-size: 12px;
-              min-width: 80px;
+              padding: 4px;
+              font-size: 10px;
+              min-width: 60px;
+              max-width: 120px;
+              text-align: left;
             }
             th {
               background: #f9f9f9;
@@ -754,7 +794,7 @@
             }
           `;
           doc.head.appendChild(style);
-          logDebug('Injected table styles into iframe');
+          logDebug('Injected table styles into main iframe');
           const script = doc.createElement('script');
           script.textContent = `
             function sanitize(str) {
@@ -772,21 +812,21 @@
                 const data = window.animalData?.[sectionName];
                 if (!data) {
                   console.error('[iframe] Data not found for section: ' + sectionName);
-                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 12px; text-align: center;">Kļūda: Dati nav atrasti sadaļai ' + sectionName + '</div>';
+                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 10px; text-align: center;">Kļūda: Dati nav atrasti sadaļai ' + sectionName + '</div>';
                   return;
                 }
                 const headers = data.headers;
                 const row = data.rows[rowIndex];
                 if (!row) {
                   console.error('[iframe] Row not found at index: ' + rowIndex);
-                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 12px; text-align: center;">Kļūda: Rinda nav atrasta index ' + rowIndex + '</div>';
+                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 10px; text-align: center;">Kļūda: Rinda nav atrasta index ' + rowIndex + '</div>';
                   return;
                 }
                 const modal = document.getElementById('fullViewModal');
                 const content = document.getElementById('fullViewContent');
                 if (!modal || !content) {
                   console.error('[iframe] Modal or content element not found');
-                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 12px; text-align: center;">Kļūda: Modālis vai satura elements nav atrasts</div>';
+                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 10px; text-align: center;">Kļūda: Modālis vai satura elements nav atrasts</div>';
                   return;
                 }
                 window.currentEditingData = { sheetName: sectionName, rowIndex: rowIndex + 1, headers: headers };
@@ -803,68 +843,68 @@
                 console.log('[iframe] Headers length: ' + headers.length);
                 console.log('[iframe] Row length: ' + row.length);
                 let html = '<div class="table-container" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">';
-                html += '<h3 style="margin-bottom: 15px; font-size: 16px; text-align: center;">Dzīvnieka detalizēts apraksts</h3>';
+                html += '<h3 style="margin-bottom: 15px; font-size: 14px; text-align: center;">Dzīvnieka detalizēts apraksts</h3>';
                 if (photoUrl && photoUrl.match(/^https?:\/\/[^\s<>"']+$/)) {
                   html += '<div style="position: relative; width: 100%; max-width: 300px; margin: 0 auto 15px auto; text-align: center;">';
                   html += '<img src="' + photoUrl + '" alt="' + animalName + '" class="animal-photo" style="max-width: 100%; height: auto; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: block; margin: 0 auto;" onload="this.style.display=\\'block\\'; this.nextElementSibling.style.display=\\'none\\';" onerror="this.style.display=\\'none\\'; this.nextElementSibling.style.display=\\'block\\';">';
-                  html += '<div class="no-photo" style="display: none; color: #666; font-style: italic; text-align: center; font-size: 12px;">Attēls nav pieejams vai nav derīgs</div>';
+                  html += '<div class="no-photo" style="display: none; color: #666; font-style: italic; text-align: center; font-size: 10px;">Attēls nav pieejams vai nav derīgs</div>';
                   html += '</div>';
                 } else {
-                  html += '<div class="no-photo" style="color: #666; font-style: italic; text-align: center; margin-bottom: 15px; font-size: 12px;">Nav pieejams foto</div>';
+                  html += '<div class="no-photo" style="color: #666; font-style: italic; text-align: center; margin-bottom: 15px; font-size: 10px;">Nav pieejams foto</div>';
                 }
-                html += '<h4 style="text-align: center; margin-bottom: 15px; font-size: 14px;">' + animalName + '</h4>';
-                html += '<table style="width: 100%; border-collapse: collapse; font-size: 12px;"><tbody>';
+                html += '<h4 style="text-align: center; margin-bottom: 15px; font-size: 12px;">' + animalName + '</h4>';
+                html += '<table style="width: 100%; max-width: 100%; border-collapse: collapse; font-size: 10px; white-space: normal; word-wrap: break-word;"><tbody>';
                 for (let i = 0; i < headers.length; i++) {
                   if (headers[i] === 'Dzīvnieka foto' || headers[i] === 'Dzīvnieka nosaukums latviski') continue;
                   const header = sanitize(headers[i] || '');
                   const value = sanitize(row[i] || '');
                   html += '<tr>';
-                  html += '<th style="text-align: left; border: 1px solid #ddd; padding: 6px; width: 40%; background: #f9f9f9; font-size: 12px;">' + header + '</th>';
-                  html += '<td style="border: 1px solid #ddd; padding: 6px; font-size: 12px;">' + value + '</td>';
+                  html += '<th style="text-align: left; border: 1px solid #ddd; padding: 4px; width: 40%; background: #f9f9f9; font-size: 10px; min-width: 60px; max-width: 120px;">' + header + '</th>';
+                  html += '<td style="border: 1px solid #ddd; padding: 4px; font-size: 10px; min-width: 60px; max-width: 120px;">' + value + '</td>';
                   html += '</tr>';
                 }
                 html += '</tbody></table>';
                 html += '</div>';
                 if (${canEdit}) {
-                  html += '<button class="btn-edit" onclick="toggleEditForm()" style="margin: 15px auto; background: #2E8B57; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; display: block; font-size: 14px; touch-action: manipulation;">Labot ierakstu</button>';
+                  html += '<button class="btn-edit" onclick="toggleEditForm()" style="margin: 15px auto; background: #2E8B57; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; display: block; font-size: 12px; touch-action: manipulation;">Labot ierakstu</button>';
                   html += '<div id="editForm" class="edit-form" style="margin: 15px; display: none;">';
-                  html += '<h4 style="margin-bottom: 10px; font-size: 14px;">Labot ierakstu</h4>';
+                  html += '<h4 style="margin-bottom: 10px; font-size: 12px;">Labot ierakstu</h4>';
                   html += '<form id="edit-entry-form" onsubmit="return submitEditForm();">';
                   for (let i = 0; i < headers.length; i++) {
                     const header = sanitize(headers[i] || '');
                     const value = sanitize(row[i] || '');
                     html += '<div class="form-group" style="margin-bottom: 12px;">';
-                    html += '<label for="edit-' + i + '" style="display: block; margin-bottom: 5px; font-size: 12px;">' + header + '</label>';
+                    html += '<label for="edit-' + i + '" style="display: block; margin-bottom: 5px; font-size: 10px;">' + header + '</label>';
                     if (header === 'Karantīna') {
-                      html += '<select id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">';
+                      html += '<select id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 10px;">';
                       html += '<option value="">Izvēlieties statusu</option>';
                       html += '<option value="Jā"' + (value === 'Jā' ? ' selected' : '') + '>Jā</option>';
                       html += '<option value="Nē"' + (value === 'Nē' ? ' selected' : '') + '>Nē</option>';
                       html += '</select>';
                     } else if (header.includes('datums')) {
-                      html += '<input type="date" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">';
+                      html += '<input type="date" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 10px;">';
                     } else if (header === 'Dzīvnieku skaits') {
-                      html += '<input type="number" id="edit-' + i + '" name="' + header + '" value="' + value + '" min="1" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">';
+                      html += '<input type="number" id="edit-' + i + '" name="' + header + '" value="' + value + '" min="1" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 10px;">';
                     } else if (header === 'Ārstēšana' || header === 'Piezīmes') {
-                      html += '<textarea id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-size: 12px;" rows="3">' + value + '</textarea>';
+                      html += '<textarea id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-size: 10px;" rows="3">' + value + '</textarea>';
                     } else if (header === 'Dzīvnieka foto') {
-                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" placeholder="Ievadiet attēla URL">';
+                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 10px;" placeholder="Ievadiet attēla URL">';
                     } else {
-                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">';
+                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 10px;">';
                     }
                     html += '</div>';
                   }
-                  html += '<button type="submit" style="background: #2E8B57; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; touch-action: manipulation;">Saglabāt izmaiņas</button>';
-                  html += '<button type="button" onclick="toggleEditForm()" style="margin-left: 10px; background: #ccc; color: black; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; touch-action: manipulation;">Atcelt</button>';
+                  html += '<button type="submit" style="background: #2E8B57; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; touch-action: manipulation;">Saglabāt izmaiņas</button>';
+                  html += '<button type="button" onclick="toggleEditForm()" style="margin-left: 10px; background: #ccc; color: black; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; touch-action: manipulation;">Atcelt</button>';
                   html += '</form>';
                   html += '</div>';
                 }
-                content.innerHTML = '<span id="closeFullView" onclick="closeFullView()" style="position: fixed; top: 10px; right: 15px; font-size: 28px; cursor: pointer; color: #2E8B57; padding: 10px; touch-action: manipulation;">&times;</span>' + html;
+                content.innerHTML = '<span id="closeFullView" onclick="closeFullView()" style="position: fixed; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #2E8B57; padding: 8px; touch-action: manipulation;">&times;</span>' + html;
                 modal.style.display = 'block';
                 console.log('[iframe] Modal content set successfully');
               } catch (e) {
                 console.error('[iframe] Error in openFullView: ' + e.message);
-                document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 12px; text-align: center;">Kļūda atverot detalizēto skatu: ' + e.message + '</div>';
+                document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 10px; text-align: center;">Kļūda atverot detalizēto skatu: ' + e.message + '</div>';
               }
             };
           `;
