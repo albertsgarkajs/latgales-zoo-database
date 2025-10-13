@@ -110,7 +110,7 @@
       flex-direction: row;
       gap: 10px;
     }
-    #deathReportsButton, #birthReportsButton, #signOutButton {
+    #deathReportsButton, #birthReportsButton, #acceptanceActsButton, #signOutButton {
       background: none;
       border: none;
       color: white;
@@ -121,11 +121,11 @@
       transition: background 0.2s, transform 0.2s;
       line-height: 1.5;
     }
-    #deathReportsButton:hover, #birthReportsButton:hover, #signOutButton:hover {
+    #deathReportsButton:hover, #birthReportsButton:hover, #acceptanceActsButton:hover, #signOutButton:hover {
       background-color: #32CD32;
       transform: translateY(-2px);
     }
-    #deathReportsButton:active, #birthReportsButton:active, #signOutButton:active {
+    #deathReportsButton:active, #birthReportsButton:active, #acceptanceActsButton:active, #signOutButton:active {
       background-color: #2E8B57;
     }
     .footer-text {
@@ -158,7 +158,7 @@
       font-style: italic;
       margin-bottom: 20px;
     }
-    #deathReportsModal, #birthReportsModal {
+    #deathReportsModal, #birthReportsModal, #acceptanceActsModal {
       display: none;
       position: fixed;
       top: 0;
@@ -170,7 +170,7 @@
       justify-content: center;
       align-items: center;
     }
-    #deathReportsModalContent, #birthReportsModalContent {
+    #deathReportsModalContent, #birthReportsModalContent, #acceptanceActsModalContent {
       background: #ffffff;
       border-radius: 8px;
       width: 90%;
@@ -180,12 +180,12 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       overflow: hidden;
     }
-    #deathReportsIframe, #birthReportsIframe {
+    #deathReportsIframe, #birthReportsIframe, #acceptanceActsIframe {
       width: 100%;
       height: 100%;
       border: none;
     }
-    #closeDeathReportsModal, #closeBirthReportsModal {
+    #closeDeathReportsModal, #closeBirthReportsModal, #closeAcceptanceActsModal {
       position: absolute;
       top: 10px;
       right: 15px;
@@ -193,18 +193,18 @@
       cursor: pointer;
       color: #2E8B57;
     }
-    #deathReportsError, #birthReportsError {
+    #deathReportsError, #birthReportsError, #acceptanceActsError {
       color: red;
       text-align: center;
       padding: 20px;
       display: none;
     }
     @media (max-width: 768px) {
-      #deathReportsModalContent, #birthReportsModalContent {
+      #deathReportsModalContent, #birthReportsModalContent, #acceptanceActsModalContent {
         width: 95%;
         height: 90vh;
       }
-      #deathReportsButton, #birthReportsButton, #signOutButton {
+      #deathReportsButton, #birthReportsButton, #acceptanceActsButton, #signOutButton {
         padding: 6px 10px;
         font-size: 13px;
       }
@@ -233,7 +233,7 @@
       #parentNav {
         padding: 5px 8px;
       }
-      #deathReportsButton, #birthReportsButton, #signOutButton {
+      #deathReportsButton, #birthReportsButton, #acceptanceActsButton, #signOutButton {
         padding: 5px 8px;
         font-size: 12px;
       }
@@ -275,6 +275,7 @@
   <div id="parentNav">
     <button id="deathReportsButton" onclick="openDeathReports()">Nāves ziņojumi</button>
     <button id="birthReportsButton" onclick="openBirthReports()">Dzimšanas ziņojumi</button>
+    <button id="acceptanceActsButton" onclick="openAcceptanceActs()">Pieņemšanas akti</button>
     <button id="signOutButton" onclick="signOut()">Iziet</button>
   </div>
   <div id="deathReportsModal">
@@ -291,6 +292,13 @@
       <iframe id="birthReportsIframe" src="" title="Dzimšanas ziņojumu forma"></iframe>
     </div>
   </div>
+  <div id="acceptanceActsModal">
+    <div id="acceptanceActsModalContent">
+      <span id="closeAcceptanceActsModal" onclick="closeAcceptanceActsModal()">&times;</span>
+      <div id="acceptanceActsError">Kļūda: Nevar ielādēt pieņemšanas aktu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(ACCEPTANCE_ACTS_URL, '_blank'); closeAcceptanceActsModal();">jaunā cilnē</a>.</div>
+      <iframe id="acceptanceActsIframe" src="" title="Pieņemšanas aktu forma"></iframe>
+    </div>
+  </div>
   <iframe
     id="appIframe"
     src=""
@@ -299,8 +307,9 @@
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/a/*/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     const DEATH_REPORTS_URL = 'https://script.google.com/macros/s/AKfycbzffFO5FKMM0JNYMNabRQOlrFQhuiFk_Ax7hUruJh9fw5Nl-cvSvaWUVNmLhLyVEBrTQw/exec';
-    const BIRTH_REPORTS_URL = 'https://script.google.com/macros/s/AKfycby4gcM1_Aja6UDDfV6Tc6D4ynIVH50Wl8Vsm2MvTi3e7WiXsJIlgFKH-DzPmMzhqjWvSQ/exec'; // TODO: Replace with actual birth reports form URL
-    const WHITELISTED_EMAILS = ['albertsgarkajs@gmail.com', 'office.client12062025@gmail.com']; // Add more whitelisted emails here
+    const BIRTH_REPORTS_URL = 'https://script.google.com/macros/s/AKfycby4gcM1_Aja6UDDfV6Tc6D4ynIVH50Wl8Vsm2MvTi3e7WiXsJIlgFKH-DzPmMzhqjWvSQ/exec';
+    const ACCEPTANCE_ACTS_URL = APPS_SCRIPT_URL; // Reuse existing URL for Acceptance Acts
+    const WHITELISTED_EMAILS = ['albertsgarkajs@gmail.com', 'office.client12062025@gmail.com'];
     let userEmail = '';
     function isWhitelisted(email) {
       return WHITELISTED_EMAILS.includes(email.toLowerCase());
@@ -359,6 +368,33 @@
       modal.style.display = 'none';
       iframe.src = '';
     }
+    function openAcceptanceActs() {
+      if (!isWhitelisted(userEmail)) {
+        showError('Nav piešķirtas izmantošanas tiesības, sazinieties ar administratoru e-pasts: albertsgarkajs@gmail.com');
+        return;
+      }
+      logDebug('Opening Acceptance Acts modal');
+      const modal = document.getElementById('acceptanceActsModal');
+      const iframe = document.getElementById('acceptanceActsIframe');
+      const errorDiv = document.getElementById('acceptanceActsError');
+      errorDiv.style.display = 'none';
+      iframe.src = ACCEPTANCE_ACTS_URL;
+      modal.style.display = 'flex';
+      iframe.onload = () => {
+        logDebug('Acceptance Acts iframe loaded successfully');
+      };
+      iframe.onerror = () => {
+        logDebug('Error loading Acceptance Acts iframe');
+        errorDiv.style.display = 'block';
+      };
+    }
+    function closeAcceptanceActsModal() {
+      logDebug('Closing Acceptance Acts modal');
+      const modal = document.getElementById('acceptanceActsModal');
+      const iframe = document.getElementById('acceptanceActsIframe');
+      modal.style.display = 'none';
+      iframe.src = '';
+    }
     function isMobileDevice() {
       return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && window.innerWidth <= 768;
     }
@@ -407,7 +443,7 @@
           display: flex;
           gap: 10px;
         }
-        #deathReportsButton, #birthReportsButton, #signOutButton {
+        #deathReportsButton, #birthReportsButton, #acceptanceActsButton, #signOutButton {
           padding: 6px 10px;
           font-size: 13px;
         }
@@ -436,7 +472,7 @@
           #parentNav {
             padding: 5px 8px;
           }
-          #deathReportsButton, #birthReportsButton, #signOutButton {
+          #deathReportsButton, #birthReportsButton, #acceptanceActsButton, #signOutButton {
             padding: 5px 8px;
             font-size: 12px;
           }
@@ -526,6 +562,7 @@
           document.getElementById('loadingOverlay').style.display = 'none';
           closeDeathReportsModal();
           closeBirthReportsModal();
+          closeAcceptanceActsModal();
         } else {
           throw new Error('Sign-out failed: ' + (result.error || 'Unknown error'));
         }
@@ -542,6 +579,7 @@
         document.getElementById('loadingOverlay').style.display = 'none';
         closeDeathReportsModal();
         closeBirthReportsModal();
+        closeAcceptanceActsModal();
       }
     }
     function injectButtons(iframe) {
@@ -599,7 +637,7 @@
           birthReportsButton.style.color = 'white';
           birthReportsButton.style.padding = isMobileDevice() ? '6px 10px' : '12px 18px';
           birthReportsButton.style.cursor = 'pointer';
-          deathReportsButton.style.fontSize = isMobileDevice() ? '13px' : '16px';
+          birthReportsButton.style.fontSize = isMobileDevice() ? '13px' : '16px';
           birthReportsButton.style.fontWeight = 'bold';
           birthReportsButton.style.lineHeight = '1.5';
           birthReportsButton.style.transition = 'background 0.2s, transform 0.2s';
@@ -619,6 +657,36 @@
             birthReportsButton.style.backgroundColor = '#32CD32';
           };
           deathReportsButton.insertAdjacentElement('afterend', birthReportsButton);
+          // Inject Acceptance Acts button
+          const acceptanceActsButton = doc.createElement('button');
+          acceptanceActsButton.id = 'acceptanceActsButton';
+          acceptanceActsButton.textContent = 'Pieņemšanas akti';
+          acceptanceActsButton.onclick = () => window.parent.openAcceptanceActs();
+          acceptanceActsButton.style.background = 'none';
+          acceptanceActsButton.style.border = 'none';
+          acceptanceActsButton.style.color = 'white';
+          acceptanceActsButton.style.padding = isMobileDevice() ? '6px 10px' : '12px 18px';
+          acceptanceActsButton.style.cursor = 'pointer';
+          acceptanceActsButton.style.fontSize = isMobileDevice() ? '13px' : '16px';
+          acceptanceActsButton.style.fontWeight = 'bold';
+          acceptanceActsButton.style.lineHeight = '1.5';
+          acceptanceActsButton.style.transition = 'background 0.2s, transform 0.2s';
+          acceptanceActsButton.style.margin = '0 2px';
+          acceptanceActsButton.onmouseover = () => {
+            acceptanceActsButton.style.backgroundColor = '#32CD32';
+            acceptanceActsButton.style.transform = 'translateY(-2px)';
+          };
+          acceptanceActsButton.onmouseout = () => {
+            acceptanceActsButton.style.backgroundColor = 'none';
+            acceptanceActsButton.style.transform = 'none';
+          };
+          acceptanceActsButton.onmousedown = () => {
+            acceptanceActsButton.style.backgroundColor = '#2E8B57';
+          };
+          acceptanceActsButton.onmouseup = () => {
+            acceptanceActsButton.style.backgroundColor = '#32CD32';
+          };
+          birthReportsButton.insertAdjacentElement('afterend', acceptanceActsButton);
           // Inject Sign Out button
           const signOutButton = doc.createElement('button');
           signOutButton.id = 'signOutButton';
@@ -648,9 +716,9 @@
           signOutButton.onmouseup = () => {
             signOutButton.style.backgroundColor = '#32CD32';
           };
-          birthReportsButton.insertAdjacentElement('afterend', signOutButton);
+          acceptanceActsButton.insertAdjacentElement('afterend', signOutButton);
           document.getElementById('parentNav').style.display = 'none';
-          logDebug('Successfully injected Nāves ziņojumi, Dzimšanas ziņojumi, and Iziet buttons into iframe nav');
+          logDebug('Successfully injected Nāves ziņojumi, Dzimšanas ziņojumi, Pieņemšanas akti, and Iziet buttons into iframe nav');
         } else {
           // Inject only Sign Out button for non-whitelisted users
           const signOutButton = doc.createElement('button');
@@ -852,6 +920,7 @@
         } else {
           document.getElementById('deathReportsButton').style.display = 'none';
           document.getElementById('birthReportsButton').style.display = 'none';
+          document.getElementById('acceptanceActsButton').style.display = 'none';
           document.getElementById('parentNav').style.display = 'flex';
           logDebug('Showing parentNav with only Iziet button for non-whitelisted user');
         }
@@ -918,10 +987,12 @@
               document.getElementById('parentNav').style.display = 'flex';
               document.getElementById('deathReportsButton').style.display = 'inline-block';
               document.getElementById('birthReportsButton').style.display = 'inline-block';
+              document.getElementById('acceptanceActsButton').style.display = 'inline-block';
             } else {
               document.getElementById('parentNav').style.display = 'flex';
               document.getElementById('deathReportsButton').style.display = 'none';
               document.getElementById('birthReportsButton').style.display = 'none';
+              document.getElementById('acceptanceActsButton').style.display = 'none';
             }
             document.getElementById('loadingOverlay').classList.add('hidden');
             setTimeout(() => {
