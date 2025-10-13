@@ -87,7 +87,7 @@
       min-height: 400px;
       border: none;
       display: none;
-      margin-top: 60px;
+      margin-top: 60px; /* Adjusted for top panels */
       flex-grow: 1;
       overflow-x: auto;
       box-sizing: border-box;
@@ -247,22 +247,33 @@
       width: 100% !important;
       max-width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
+      font-size: 14px !important; /* Increased for readability */
       table-layout: fixed !important;
       white-space: normal;
       word-break: break-word;
     }
     th, td {
       border: 1px solid #ddd;
-      padding: 6px;
+      padding: 4px; /* Reduced padding for better fit */
       text-align: left;
-      font-size: 12px;
-      min-width: 120px !important;
+      font-size: 14px !important;
+      min-width: 100px !important; /* Reduced min-width */
       flex-grow: 1 !important;
     }
     th {
       background: #f9f9f9;
       font-weight: bold;
+    }
+    @media (orientation: landscape) {
+      #appIframe {
+        margin-top: 80px; /* Increased to account for top panels in landscape */
+      }
+      #navMenu {
+        display: none; /* Hide nav menu by default in landscape */
+      }
+      #hamburgerMenu {
+        z-index: 1003; /* Ensure it stays above iframe */
+      }
     }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -480,17 +491,17 @@
             table {
               width: 100% !important;
               border-collapse: collapse;
-              font-size: 12px !important;
+              font-size: 14px !important;
               table-layout: fixed !important;
               display: table;
             }
             th, td {
               border: 1px solid #ddd !important;
-              padding: 6px !important;
+              padding: 4px !important;
               text-align: left !important;
-              font-size: 12px !important;
+              font-size: 14px !important;
               flex-grow: 1 !important;
-              min-width: 120px !important;
+              min-width: 100px !important;
             }
             th {
               background: #f9f9f9 !important;
@@ -506,12 +517,12 @@
             const thElements = table.querySelectorAll('th');
             thElements.forEach(th => {
               th.style.flexGrow = '1 !important';
-              th.style.minWidth = '120px !important';
+              th.style.minWidth = '100px !important';
             });
             const tdElements = table.querySelectorAll('td');
             tdElements.forEach(td => {
               td.style.flexGrow = '1 !important';
-              td.style.minWidth = '120px !important';
+              td.style.minWidth = '100px !important';
             });
           });
         } catch (error) {
@@ -703,21 +714,25 @@
             table {
               width: 100% !important;
               border-collapse: collapse;
-              font-size: 12px !important;
+              font-size: 14px !important;
               table-layout: fixed !important;
               display: table;
             }
             th, td {
               border: 1px solid #ddd !important;
-              padding: 6px !important;
+              padding: 4px !important;
               text-align: left !important;
-              font-size: 12px !important;
+              font-size: 14px !important;
               flex-grow: 1 !important;
-              min-width: 120px !important;
+              min-width: 100px !important;
             }
             th {
               background: #f9f9f9 !important;
               font-weight: bold !important;
+            }
+            /* Ensure first row scrolls if fixed */
+            tr:first-child {
+              position: relative !important;
             }
           `;
           doc.head.appendChild(style);
@@ -729,12 +744,12 @@
             const thElements = table.querySelectorAll('th');
             thElements.forEach(th => {
               th.style.flexGrow = '1 !important';
-              th.style.minWidth = '120px !important';
+              th.style.minWidth = '100px !important';
             });
             const tdElements = table.querySelectorAll('td');
             tdElements.forEach(td => {
               td.style.flexGrow = '1 !important';
-              td.style.minWidth = '120px !important';
+              td.style.minWidth = '100px !important';
             });
           });
           const script = doc.createElement('script');
@@ -789,14 +804,14 @@
                   html += '<div class="no-photo" style="color: #666; font-style: italic; text-align: center; margin-bottom: 15px; font-size: 12px;">Nav pieejams foto</div>';
                 }
                 html += '<h4 style="text-align: center; margin-bottom: 15px; font-size: 12px;">' + animalName + '</h4>';
-                html += '<table style="width: 100% !important; border-collapse: collapse; font-size: 12px !important; table-layout: fixed !important;"><tbody>';
+                html += '<table style="width: 100% !important; border-collapse: collapse; font-size: 14px !important; table-layout: fixed !important;"><tbody>';
                 for (let i = 0; i < headers.length; i++) {
                   if (headers[i] === 'Dzīvnieka foto' || headers[i] === 'Dzīvnieka nosaukums latviski') continue;
                   const header = sanitize(headers[i] || '');
                   const value = sanitize(row[i] || '');
                   html += '<tr>';
-                  html += '<th style="text-align: left; border: 1px solid #ddd; padding: 6px; width: 40%; background: #f9f9f9; font-size: 12px; min-width: 120px !important;">' + header + '</th>';
-                  html += '<td style="border: 1px solid #ddd; padding: 6px; font-size: 12px; min-width: 120px !important;">' + value + '</td>';
+                  html += '<th style="text-align: left; border: 1px solid #ddd; padding: 4px; width: 40%; background: #f9f9f9; font-size: 14px; min-width: 100px !important;">' + header + '</th>';
+                  html += '<td style="border: 1px solid #ddd; padding: 4px; font-size: 14px; min-width: 100px !important;">' + value + '</td>';
                   html += '</tr>';
                 }
                 html += '</tbody></table>';
