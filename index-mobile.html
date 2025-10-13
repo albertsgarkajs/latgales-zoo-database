@@ -84,7 +84,7 @@
     }
     #appIframe {
       width: 100%;
-      min-height: 400px;
+      height: auto;
       border: none;
       display: none;
       margin-top: 60px;
@@ -507,6 +507,8 @@
             th {
               background: #f9f9f9 !important;
               font-weight: bold !important;
+              position: relative !important; /* Ensure header scrolls */
+              top: auto !important;
             }
           `;
           doc.head.appendChild(style);
@@ -519,6 +521,8 @@
             thElements.forEach(th => {
               th.style.flexGrow = '1 !important';
               th.style.minWidth = '100px !important';
+              th.style.position = 'relative !important';
+              th.style.top = 'auto !important';
             });
             const tdElements = table.querySelectorAll('td');
             tdElements.forEach(td => {
@@ -711,6 +715,8 @@
               width: 100% !important;
               overflow-x: auto;
               -webkit-overflow-scrolling: touch;
+              overflow-y: auto !important; /* Ensure immediate vertical scrolling */
+              height: auto !important; /* Allow content to dictate height */
             }
             table {
               width: 100% !important;
@@ -726,26 +732,20 @@
               font-size: 14px !important;
               flex-grow: 1 !important;
               min-width: 100px !important;
+              position: relative !important; /* Ensure th scrolls */
+              top: auto !important;
             }
             th {
               background: #f9f9f9 !important;
               font-weight: bold !important;
             }
-            tr:first-child {
-              position: relative !important; /* Prevent first row from being fixed */
-            }
-            /* Target header and section tabs to scroll out of view */
+            /* Target header and section tabs to scroll immediately */
             h1, h2, h3, .section-tabs, nav, .nav {
               position: relative !important;
               top: auto !important;
               width: 100% !important;
               margin: 0 !important;
               padding: 10px 0 !important;
-            }
-            .content {
-              overflow-y: auto !important;
-              height: 100% !important;
-              -webkit-overflow-scrolling: touch !important;
             }
           `;
           doc.head.appendChild(style);
@@ -758,6 +758,8 @@
             thElements.forEach(th => {
               th.style.flexGrow = '1 !important';
               th.style.minWidth = '100px !important';
+              th.style.position = 'relative !important';
+              th.style.top = 'auto !important';
             });
             const tdElements = table.querySelectorAll('td');
             tdElements.forEach(td => {
