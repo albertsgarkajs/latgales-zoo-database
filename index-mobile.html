@@ -734,6 +734,19 @@
             tr:first-child {
               position: relative !important; /* Prevent first row from being fixed */
             }
+            /* Target header and section tabs to scroll out of view */
+            h1, h2, h3, .section-tabs, nav, .nav {
+              position: relative !important;
+              top: auto !important;
+              width: 100% !important;
+              margin: 0 !important;
+              padding: 10px 0 !important;
+            }
+            .content {
+              overflow-y: auto !important;
+              height: 100% !important;
+              -webkit-overflow-scrolling: touch !important;
+            }
           `;
           doc.head.appendChild(style);
           const tables = doc.querySelectorAll('table');
