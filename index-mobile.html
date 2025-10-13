@@ -87,10 +87,11 @@
       min-height: 400px;
       border: none;
       display: none;
-      margin-top: 60px; /* Adjusted for top panels */
+      margin-top: 60px;
       flex-grow: 1;
       overflow-x: auto;
       box-sizing: border-box;
+      sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"
     }
     .btn-retry {
       background-color: #2E8B57;
@@ -217,7 +218,7 @@
       width: 100%;
       height: 100%;
       border: none;
-      sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+      sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"
     }
     #closeDeathReportsModal, #closeBirthReportsModal, #closeAcceptanceActsModal {
       position: absolute;
@@ -247,17 +248,17 @@
       width: 100% !important;
       max-width: 100%;
       border-collapse: collapse;
-      font-size: 14px !important; /* Increased for readability */
+      font-size: 14px !important;
       table-layout: fixed !important;
       white-space: normal;
       word-break: break-word;
     }
     th, td {
       border: 1px solid #ddd;
-      padding: 4px; /* Reduced padding for better fit */
+      padding: 4px;
       text-align: left;
       font-size: 14px !important;
-      min-width: 100px !important; /* Reduced min-width */
+      min-width: 100px !important;
       flex-grow: 1 !important;
     }
     th {
@@ -266,13 +267,13 @@
     }
     @media (orientation: landscape) {
       #appIframe {
-        margin-top: 80px; /* Increased to account for top panels in landscape */
+        margin-top: 80px;
       }
       #navMenu {
-        display: none; /* Hide nav menu by default in landscape */
+        display: none;
       }
       #hamburgerMenu {
-        z-index: 1003; /* Ensure it stays above iframe */
+        z-index: 1003;
       }
     }
   </style>
@@ -319,24 +320,24 @@
     <div id="deathReportsModalContent">
       <span id="closeDeathReportsModal" onclick="closeDeathReportsModal()">&times;</span>
       <div id="deathReportsError">Kļūda: Nevar ielādēt nāves ziņojumu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(DEATH_REPORTS_URL, '_blank'); closeDeathReportsModal();">jaunā cilnē</a>.</div>
-      <iframe id="deathReportsIframe" src="" title="Nāves ziņojumu forma"></iframe>
+      <iframe id="deathReportsIframe" src="" title="Nāves ziņojumu forma" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"></iframe>
     </div>
   </div>
   <div id="birthReportsModal">
     <div id="birthReportsModalContent">
       <span id="closeBirthReportsModal" onclick="closeBirthReportsModal()">&times;</span>
       <div id="birthReportsError">Kļūda: Nevar ielādēt dzimšanas ziņojumu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(BIRTH_REPORTS_URL, '_blank'); closeBirthReportsModal();">jaunā cilnē</a>.</div>
-      <iframe id="birthReportsIframe" src="" title="Dzimšanas ziņojumu forma"></iframe>
+      <iframe id="birthReportsIframe" src="" title="Dzimšanas ziņojumu forma" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"></iframe>
     </div>
   </div>
   <div id="acceptanceActsModal">
     <div id="acceptanceActsModalContent">
       <span id="closeAcceptanceActsModal" onclick="closeAcceptanceActsModal()">&times;</span>
       <div id="acceptanceActsError">Kļūda: Nevar ielādēt pieņemšanas aktu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(ACCEPTANCE_ACTS_URL, '_blank'); closeAcceptanceActsModal();">jaunā cilnē</a>.</div>
-      <iframe id="acceptanceActsIframe" src="" title="Pieņemšanas aktu forma"></iframe>
+      <iframe id="acceptanceActsIframe" src="" title="Pieņemšanas aktu forma" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"></iframe>
     </div>
   </div>
-  <iframe id="appIframe" src="" title="Latgales Zoodārza Dzīvnieku Datubāze" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+  <iframe id="appIframe" src="" title="Latgales Zoodārza Dzīvnieku Datubāze" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"></iframe>
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/a/*/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     const DEATH_REPORTS_URL = 'https://script.google.com/macros/s/AKfycbzffFO5FKMM0JNYMNabRQOlrFQhuiFk_Ax7hUruJh9fw5Nl-cvSvaWUVNmLhLyVEBrTQw/exec';
@@ -730,9 +731,8 @@
               background: #f9f9f9 !important;
               font-weight: bold !important;
             }
-            /* Ensure first row scrolls if fixed */
             tr:first-child {
-              position: relative !important;
+              position: relative !important; /* Prevent first row from being fixed */
             }
           `;
           doc.head.appendChild(style);
@@ -872,7 +872,7 @@
       function attemptLoad() {
         iframe.onload = () => {
           logDebug(`${iframeId} loaded successfully`);
-          injectModalTableStyles(iframe, iframeId);
+          if (iframeId !== 'appIframe') injectModalTableStyles(iframe, iframeId);
           errorDiv.style.display = 'none';
         };
         iframe.onerror = () => {
@@ -883,6 +883,7 @@
           } else {
             logDebug(`Failed to load ${iframeId} after ${maxAttempts} attempts`);
             errorDiv.style.display = 'block';
+            errorDiv.innerHTML = `Kļūda: Nevar ielādēt ${iframeId.replace('Iframe', '').toLowerCase()} formu. Lūdzu, atveriet to <a href="#" onclick="window.open('${baseUrl}', '_blank'); window.parent.close${iframeId.replace('Iframe', 'Modal')}();">jaunā cilnē</a>.`;
           }
         };
       }
