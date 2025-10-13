@@ -89,7 +89,6 @@
       display: none;
       margin-top: 60px;
       flex-grow: 1;
-      overflow-x: auto;
       box-sizing: border-box;
     }
     .btn-retry {
@@ -204,8 +203,8 @@
     }
     #deathReportsModalContent, #birthReportsModalContent, #acceptanceActsModalContent {
       background: #ffffff;
-      width: 90vw;
-      max-width: 600px;
+      width: 95vw;
+      max-width: 800px;
       height: 80vh;
       position: relative;
       border-radius: 8px;
@@ -243,20 +242,16 @@
       margin-top: 15px;
     }
     table {
-      width: 100%;
-      max-width: 100%;
+      width: 100% !important;
       border-collapse: collapse;
-      font-size: 9px;
-      white-space: normal;
-      word-break: break-all;
+      font-size: 12px;
+      display: table;
     }
     th, td {
       border: 1px solid #ddd;
-      padding: 3px;
+      padding: 6px;
       text-align: left;
-      font-size: 9px;
-      min-width: 50px;
-      max-width: 100px;
+      font-size: 12px;
     }
     th {
       background: #f9f9f9;
@@ -466,53 +461,69 @@
       document.getElementById('loadingOverlay').style.display = 'none';
     }
     function injectModalTableStyles(iframe, iframeId) {
-      try {
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        if (!doc) {
-          throw new Error('Cannot access iframe document for ' + iframeId);
+      let attempts = 0;
+      const maxAttempts = 3;
+      function applyStyles() {
+        try {
+          const doc = iframe.contentDocument || iframe.contentWindow.document;
+          if (!doc) {
+            if (attempts < maxAttempts) {
+              attempts++;
+              logDebug(`Retry ${attempts} for ${iframeId} style injection, waiting 500ms`);
+              setTimeout(applyStyles, 500);
+              return;
+            }
+            throw new Error('Cannot access iframe document for ' + iframeId + ' after ' + maxAttempts + ' attempts');
+          }
+          const style = doc.createElement('style');
+          style.textContent = `
+            .table-container, .content, form, div[role="form"] {
+              width: 100% !important;
+              overflow-x: auto;
+              -webkit-overflow-scrolling: touch;
+            }
+            table {
+              width: 100% !important;
+              border-collapse: collapse;
+              font-size: 12px !important;
+              display: table;
+              table-layout: fixed !important;
+            }
+            th, td {
+              border: 1px solid #ddd !important;
+              padding: 6px !important;
+              text-align: left !important;
+              font-size: 12px !important;
+              flex-grow: 1 !important;
+              min-width: 120px !important;
+            }
+            th {
+              background: #f9f9f9 !important;
+              font-weight: bold !important;
+            }
+          `;
+          doc.head.appendChild(style);
+          const tables = doc.querySelectorAll('table');
+          logDebug('Injected table styles into ' + iframeId + ', found ' + tables.length + ' tables');
+          tables.forEach(table => {
+            table.style.width = '100% !important';
+            table.style.tableLayout = 'fixed !important';
+            const thElements = table.querySelectorAll('th');
+            thElements.forEach(th => {
+              th.style.flexGrow = '1 !important';
+              th.style.minWidth = '120px !important';
+            });
+            const tdElements = table.querySelectorAll('td');
+            tdElements.forEach(td => {
+              td.style.flexGrow = '1 !important';
+              td.style.minWidth = '120px !important';
+            });
+          });
+        } catch (error) {
+          console.error('[index-mobile.html] Failed to inject table styles into ' + iframeId + ': ' + error.message);
         }
-        const style = doc.createElement('style');
-        style.textContent = `
-          .table-container, .content, form, div[role="form"] {
-            width: 100%;
-            max-width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-          }
-          table {
-            width: 100%;
-            max-width: 100%;
-            border-collapse: collapse;
-            font-size: 9px;
-            white-space: normal;
-            word-break: break-all;
-          }
-          th, td {
-            border: 1px solid #ddd;
-            padding: 3px;
-            font-size: 9px;
-            min-width: 50px;
-            max-width: 100px;
-            text-align: left;
-          }
-          th {
-            background: #f9f9f9;
-            font-weight: bold;
-          }
-        `;
-        doc.head.appendChild(style);
-        const tables = doc.querySelectorAll('table');
-        logDebug('Injected table styles into ' + iframeId + ', found ' + tables.length + ' tables');
-        tables.forEach(table => {
-          table.style.width = '100%';
-          table.style.maxWidth = '100%';
-          table.style.fontSize = '9px';
-          table.style.whiteSpace = 'normal';
-          table.style.wordBreak = 'break-all';
-        });
-      } catch (error) {
-        console.error('[index-mobile.html] Failed to inject table styles into ' + iframeId + ': ' + error.message);
       }
+      applyStyles();
     }
     function handleCredentialResponse(response) {
       logDebug('Google OAuth initiated: ' + JSON.stringify(response));
@@ -604,347 +615,323 @@
       }
     }
     function injectButtons(iframe) {
-      try {
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        if (!doc) {
-          throw new Error('Cannot access iframe document');
-        }
-        const nav = doc.querySelector('nav');
-        if (!nav) {
-          throw new Error('Nav element not found in iframe');
-        }
-        const newEntryButton = doc.getElementById('btn-new-entry');
-        if (!newEntryButton) {
-          throw new Error('Jauns ieraksts button not found');
-        }
-        if (isWhitelisted(userEmail)) {
-          const deathReportsButton = doc.createElement('button');
-          deathReportsButton.id = 'deathReportsButton';
-          deathReportsButton.textContent = 'Nāves ziņojumi';
-          deathReportsButton.onclick = () => window.parent.openDeathReports();
-          deathReportsButton.style.background = 'none';
-          deathReportsButton.style.border = 'none';
-          deathReportsButton.style.color = 'white';
-          deathReportsButton.style.padding = '8px 12px';
-          deathReportsButton.style.cursor = 'pointer';
-          deathReportsButton.style.fontSize = '10px';
-          deathReportsButton.style.fontWeight = 'bold';
-          deathReportsButton.style.lineHeight = '1.5';
-          deathReportsButton.style.transition = 'background 0.2s';
-          deathReportsButton.style.margin = '0 2px';
-          deathReportsButton.style.width = '100%';
-          deathReportsButton.style.borderRadius = '4px';
-          deathReportsButton.style.touchAction = 'manipulation';
-          deathReportsButton.onmouseover = () => {
-            deathReportsButton.style.backgroundColor = '#32CD32';
-          };
-          deathReportsButton.onmouseout = () => {
-            deathReportsButton.style.backgroundColor = 'none';
-          };
-          deathReportsButton.onmousedown = () => {
-            deathReportsButton.style.backgroundColor = '#2E8B57';
-          };
-          deathReportsButton.onmouseup = () => {
-            deathReportsButton.style.backgroundColor = '#32CD32';
-          };
-          newEntryButton.insertAdjacentElement('afterend', deathReportsButton);
-          const birthReportsButton = doc.createElement('button');
-          birthReportsButton.id = 'birthReportsButton';
-          birthReportsButton.textContent = 'Dzimšanas ziņojumi';
-          birthReportsButton.onclick = () => window.parent.openBirthReports();
-          birthReportsButton.style.background = 'none';
-          birthReportsButton.style.border = 'none';
-          birthReportsButton.style.color = 'white';
-          birthReportsButton.style.padding = '8px 12px';
-          birthReportsButton.style.cursor = 'pointer';
-          birthReportsButton.style.fontSize = '10px';
-          birthReportsButton.style.fontWeight = 'bold';
-          birthReportsButton.style.lineHeight = '1.5';
-          birthReportsButton.style.transition = 'background 0.2s';
-          birthReportsButton.style.margin = '0 2px';
-          birthReportsButton.style.width = '100%';
-          birthReportsButton.style.borderRadius = '4px';
-          birthReportsButton.style.touchAction = 'manipulation';
-          birthReportsButton.onmouseover = () => {
-            birthReportsButton.style.backgroundColor = '#32CD32';
-          };
-          birthReportsButton.onmouseout = () => {
-            birthReportsButton.style.backgroundColor = 'none';
-          };
-          birthReportsButton.onmousedown = () => {
-            birthReportsButton.style.backgroundColor = '#2E8B57';
-          };
-          birthReportsButton.onmouseup = () => {
-            birthReportsButton.style.backgroundColor = '#32CD32';
-          };
-          deathReportsButton.insertAdjacentElement('afterend', birthReportsButton);
-          const acceptanceActsButton = doc.createElement('button');
-          acceptanceActsButton.id = 'acceptanceActsButton';
-          acceptanceActsButton.textContent = 'Pieņemšanas akti';
-          acceptanceActsButton.onclick = () => window.parent.openAcceptanceActs();
-          acceptanceActsButton.style.background = 'none';
-          acceptanceActsButton.style.border = 'none';
-          acceptanceActsButton.style.color = 'white';
-          acceptanceActsButton.style.padding = '8px 12px';
-          acceptanceActsButton.style.cursor = 'pointer';
-          acceptanceActsButton.style.fontSize = '10px';
-          acceptanceActsButton.style.fontWeight = 'bold';
-          acceptanceActsButton.style.lineHeight = '1.5';
-          acceptanceActsButton.style.transition = 'background 0.2s';
-          acceptanceActsButton.style.margin = '0 2px';
-          acceptanceActsButton.style.width = '100%';
-          acceptanceActsButton.style.borderRadius = '4px';
-          acceptanceActsButton.style.touchAction = 'manipulation';
-          acceptanceActsButton.onmouseover = () => {
-            acceptanceActsButton.style.backgroundColor = '#32CD32';
-          };
-          acceptanceActsButton.onmouseout = () => {
-            acceptanceActsButton.style.backgroundColor = 'none';
-          };
-          acceptanceActsButton.onmousedown = () => {
-            acceptanceActsButton.style.backgroundColor = '#2E8B57';
-          };
-          acceptanceActsButton.onmouseup = () => {
-            acceptanceActsButton.style.backgroundColor = '#32CD32';
-          };
-          birthReportsButton.insertAdjacentElement('afterend', acceptanceActsButton);
-          const signOutButton = doc.createElement('button');
-          signOutButton.id = 'signOutButton';
-          signOutButton.textContent = 'Iziet';
-          signOutButton.onclick = () => window.parent.signOut();
-          signOutButton.style.background = 'none';
-          signOutButton.style.border = 'none';
-          signOutButton.style.color = 'white';
-          signOutButton.style.padding = '8px 12px';
-          signOutButton.style.cursor = 'pointer';
-          signOutButton.style.fontSize = '10px';
-          signOutButton.style.fontWeight = 'bold';
-          signOutButton.style.lineHeight = '1.5';
-          signOutButton.style.transition = 'background 0.2s';
-          signOutButton.style.margin = '0 2px';
-          signOutButton.style.width = '100%';
-          signOutButton.style.borderRadius = '4px';
-          signOutButton.style.touchAction = 'manipulation';
-          signOutButton.onmouseover = () => {
-            signOutButton.style.backgroundColor = '#32CD32';
-          };
-          signOutButton.onmouseout = () => {
-            signOutButton.style.backgroundColor = 'none';
-          };
-          signOutButton.onmousedown = () => {
-            signOutButton.style.backgroundColor = '#2E8B57';
-          };
-          signOutButton.onmouseup = () => {
-            signOutButton.style.backgroundColor = '#32CD32';
-          };
-          acceptanceActsButton.insertAdjacentElement('afterend', signOutButton);
-          document.getElementById('navMenu').classList.remove('visible');
-          logDebug('Successfully injected buttons into iframe nav');
-        } else {
-          const signOutButton = doc.createElement('button');
-          signOutButton.id = 'signOutButton';
-          signOutButton.textContent = 'Iziet';
-          signOutButton.onclick = () => window.parent.signOut();
-          signOutButton.style.background = 'none';
-          signOutButton.style.border = 'none';
-          signOutButton.style.color = 'white';
-          signOutButton.style.padding = '8px 12px';
-          signOutButton.style.cursor = 'pointer';
-          signOutButton.style.fontSize = '10px';
-          signOutButton.style.fontWeight = 'bold';
-          signOutButton.style.lineHeight = '1.5';
-          signOutButton.style.transition = 'background 0.2s';
-          signOutButton.style.margin = '0 2px';
-          signOutButton.style.width = '100%';
-          signOutButton.style.borderRadius = '4px';
-          signOutButton.style.touchAction = 'manipulation';
-          signOutButton.onmouseover = () => {
-            signOutButton.style.backgroundColor = '#32CD32';
-          };
-          signOutButton.onmouseout = () => {
-            signOutButton.style.backgroundColor = 'none';
-          };
-          signOutButton.onmousedown = () => {
-            signOutButton.style.backgroundColor = '#2E8B57';
-          };
-          signOutButton.onmouseup = () => {
-            signOutButton.style.backgroundColor = '#32CD32';
-          };
-          newEntryButton.insertAdjacentElement('afterend', signOutButton);
-          document.getElementById('navMenu').classList.remove('visible');
-          logDebug('Injected only Iziet button for non-whitelisted user');
-        }
+      let attempts = 0;
+      const maxAttempts = 3;
+      function applyButtonsAndStyles() {
         try {
-          const style = doc.createElement('style');
-          style.textContent = `
-            .table-container, .content {
-              width: 100%;
-              max-width: 100%;
-              overflow-x: auto;
-              -webkit-overflow-scrolling: touch;
+          const doc = iframe.contentDocument || iframe.contentWindow.document;
+          if (!doc) {
+            if (attempts < maxAttempts) {
+              attempts++;
+              logDebug(`Retry ${attempts} for main iframe button/style injection, waiting 500ms`);
+              setTimeout(applyButtonsAndStyles, 500);
+              return;
             }
-            table {
-              width: 100%;
-              max-width: 100%;
-              border-collapse: collapse;
-              font-size: 9px;
-              white-space: normal;
-              word-break: break-all;
-            }
-            th, td {
-              border: 1px solid #ddd;
-              padding: 3px;
-              font-size: 9px;
-              min-width: 50px;
-              max-width: 100px;
-              text-align: left;
-            }
-            th {
-              background: #f9f9f9;
-              font-weight: bold;
-            }
-          `;
-          doc.head.appendChild(style);
-          const tables = doc.querySelectorAll('table');
-          logDebug('Injected table styles into main iframe, found ' + tables.length + ' tables');
-          tables.forEach(table => {
-            table.style.width = '100%';
-            table.style.maxWidth = '100%';
-            table.style.fontSize = '9px';
-            table.style.whiteSpace = 'normal';
-            table.style.wordBreak = 'break-all';
-          });
-          const script = doc.createElement('script');
-          script.textContent = `
-            function sanitize(str) {
-              if (!str) return '';
-              return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
-            }
-            window.openFullView = function(sectionName, rowIndex) {
-              console.log('[iframe] Opening full view for: ' + sectionName + ', row: ' + rowIndex);
-              try {
-                const data = window.animalData?.[sectionName];
-                if (!data) {
-                  console.error('[iframe] Data not found for section: ' + sectionName);
-                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 9px; text-align: center;">Kļūda: Dati nav atrasti sadaļai ' + sectionName + '</div>';
-                  return;
-                }
-                const headers = data.headers;
-                const row = data.rows[rowIndex];
-                if (!row) {
-                  console.error('[iframe] Row not found at index: ' + rowIndex);
-                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 9px; text-align: center;">Kļūda: Rinda nav atrasta index ' + rowIndex + '</div>';
-                  return;
-                }
-                const modal = document.getElementById('fullViewModal');
-                const content = document.getElementById('fullViewContent');
-                if (!modal || !content) {
-                  console.error('[iframe] Modal or content element not found');
-                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 9px; text-align: center;">Kļūda: Modālis vai satura elements nav atrasts</div>';
-                  return;
-                }
-                window.currentEditingData = { sheetName: sectionName, rowIndex: rowIndex + 1, headers: headers };
-                const photoUrlIndex = headers.indexOf('Dzīvnieka foto');
-                const nameIndex = headers.indexOf('Dzīvnieka nosaukums latviski');
-                const photoUrlRaw = photoUrlIndex >= 0 && row[photoUrlIndex] ? String(row[photoUrlIndex]).trim() : '';
-                const animalNameRaw = nameIndex >= 0 && row[nameIndex] ? String(row[nameIndex]).trim() : 'Dzīvnieks';
-                const photoUrl = sanitize(photoUrlRaw);
-                const animalName = sanitize(animalNameRaw);
-                console.log('[iframe] photoUrlRaw: ' + photoUrlRaw);
-                console.log('[iframe] photoUrl: ' + photoUrl);
-                console.log('[iframe] animalNameRaw: ' + animalNameRaw);
-                console.log('[iframe] animalName: ' + animalName);
-                console.log('[iframe] Headers length: ' + headers.length);
-                console.log('[iframe] Row length: ' + row.length);
-                let html = '<div class="table-container" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">';
-                html += '<h3 style="margin-bottom: 15px; font-size: 14px; text-align: center;">Dzīvnieka detalizēts apraksts</h3>';
-                if (photoUrl && photoUrl.match(/^https?:\/\/[^\s<>"']+$/)) {
-                  html += '<div style="position: relative; width: 100%; max-width: 300px; margin: 0 auto 15px auto; text-align: center;">';
-                  html += '<img src="' + photoUrl + '" alt="' + animalName + '" class="animal-photo" style="max-width: 100%; height: auto; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: block; margin: 0 auto;" onload="this.style.display=\\'block\\'; this.nextElementSibling.style.display=\\'none\\';" onerror="this.style.display=\\'none\\'; this.nextElementSibling.style.display=\\'block\\';">';
-                  html += '<div class="no-photo" style="display: none; color: #666; font-style: italic; text-align: center; font-size: 9px;">Attēls nav pieejams vai nav derīgs</div>';
-                  html += '</div>';
-                } else {
-                  html += '<div class="no-photo" style="color: #666; font-style: italic; text-align: center; margin-bottom: 15px; font-size: 9px;">Nav pieejams foto</div>';
-                }
-                html += '<h4 style="text-align: center; margin-bottom: 15px; font-size: 12px;">' + animalName + '</h4>';
-                html += '<table style="width: 100%; max-width: 100%; border-collapse: collapse; font-size: 9px; white-space: normal; word-break: break-all;"><tbody>';
-                for (let i = 0; i < headers.length; i++) {
-                  if (headers[i] === 'Dzīvnieka foto' || headers[i] === 'Dzīvnieka nosaukums latviski') continue;
-                  const header = sanitize(headers[i] || '');
-                  const value = sanitize(row[i] || '');
-                  html += '<tr>';
-                  html += '<th style="text-align: left; border: 1px solid #ddd; padding: 3px; width: 40%; background: #f9f9f9; font-size: 9px; min-width: 50px; max-width: 100px;">' + header + '</th>';
-                  html += '<td style="border: 1px solid #ddd; padding: 3px; font-size: 9px; min-width: 50px; max-width: 100px;">' + value + '</td>';
-                  html += '</tr>';
-                }
-                html += '</tbody></table>';
-                html += '</div>';
-                if (isWhitelisted(userEmail)) {
-                  html += '<button class="btn-edit" onclick="toggleEditForm()" style="margin: 15px auto; background: #2E8B57; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; display: block; font-size: 12px; touch-action: manipulation;">Labot ierakstu</button>';
-                  html += '<div id="editForm" class="edit-form" style="margin: 15px; display: none;">';
-                  html += '<h4 style="margin-bottom: 10px; font-size: 12px;">Labot ierakstu</h4>';
-                  html += '<form id="edit-entry-form" onsubmit="return submitEditForm();">';
+            throw new Error('Cannot access iframe document after ' + maxAttempts + ' attempts');
+          }
+          const nav = doc.querySelector('nav');
+          if (!nav) {
+            throw new Error('Nav element not found in iframe');
+          }
+          const newEntryButton = doc.getElementById('btn-new-entry');
+          if (!newEntryButton) {
+            throw new Error('Jauns ieraksts button not found');
+          }
+          if (isWhitelisted(userEmail)) {
+            const deathReportsButton = doc.createElement('button');
+            deathReportsButton.id = 'deathReportsButton';
+            deathReportsButton.textContent = 'Nāves ziņojumi';
+            deathReportsButton.onclick = () => window.parent.openDeathReports();
+            deathReportsButton.style.background = 'none';
+            deathReportsButton.style.border = 'none';
+            deathReportsButton.style.color = 'white';
+            deathReportsButton.style.padding = '8px 12px';
+            deathReportsButton.style.cursor = 'pointer';
+            deathReportsButton.style.fontSize = '10px';
+            deathReportsButton.style.fontWeight = 'bold';
+            deathReportsButton.style.lineHeight = '1.5';
+            deathReportsButton.style.transition = 'background 0.2s';
+            deathReportsButton.style.margin = '0 2px';
+            deathReportsButton.style.width = '100%';
+            deathReportsButton.style.borderRadius = '4px';
+            deathReportsButton.style.touchAction = 'manipulation';
+            deathReportsButton.onmouseover = () => { deathReportsButton.style.backgroundColor = '#32CD32'; };
+            deathReportsButton.onmouseout = () => { deathReportsButton.style.backgroundColor = 'none'; };
+            deathReportsButton.onmousedown = () => { deathReportsButton.style.backgroundColor = '#2E8B57'; };
+            deathReportsButton.onmouseup = () => { deathReportsButton.style.backgroundColor = '#32CD32'; };
+            newEntryButton.insertAdjacentElement('afterend', deathReportsButton);
+            const birthReportsButton = doc.createElement('button');
+            birthReportsButton.id = 'birthReportsButton';
+            birthReportsButton.textContent = 'Dzimšanas ziņojumi';
+            birthReportsButton.onclick = () => window.parent.openBirthReports();
+            birthReportsButton.style.background = 'none';
+            birthReportsButton.style.border = 'none';
+            birthReportsButton.style.color = 'white';
+            birthReportsButton.style.padding = '8px 12px';
+            birthReportsButton.style.cursor = 'pointer';
+            birthReportsButton.style.fontSize = '10px';
+            birthReportsButton.style.fontWeight = 'bold';
+            birthReportsButton.style.lineHeight = '1.5';
+            birthReportsButton.style.transition = 'background 0.2s';
+            birthReportsButton.style.margin = '0 2px';
+            birthReportsButton.style.width = '100%';
+            birthReportsButton.style.borderRadius = '4px';
+            birthReportsButton.style.touchAction = 'manipulation';
+            birthReportsButton.onmouseover = () => { birthReportsButton.style.backgroundColor = '#32CD32'; };
+            birthReportsButton.onmouseout = () => { birthReportsButton.style.backgroundColor = 'none'; };
+            birthReportsButton.onmousedown = () => { birthReportsButton.style.backgroundColor = '#2E8B57'; };
+            birthReportsButton.onmouseup = () => { birthReportsButton.style.backgroundColor = '#32CD32'; };
+            deathReportsButton.insertAdjacentElement('afterend', birthReportsButton);
+            const acceptanceActsButton = doc.createElement('button');
+            acceptanceActsButton.id = 'acceptanceActsButton';
+            acceptanceActsButton.textContent = 'Pieņemšanas akti';
+            acceptanceActsButton.onclick = () => window.parent.openAcceptanceActs();
+            acceptanceActsButton.style.background = 'none';
+            acceptanceActsButton.style.border = 'none';
+            acceptanceActsButton.style.color = 'white';
+            acceptanceActsButton.style.padding = '8px 12px';
+            acceptanceActsButton.style.cursor = 'pointer';
+            acceptanceActsButton.style.fontSize = '10px';
+            acceptanceActsButton.style.fontWeight = 'bold';
+            acceptanceActsButton.style.lineHeight = '1.5';
+            acceptanceActsButton.style.transition = 'background 0.2s';
+            acceptanceActsButton.style.margin = '0 2px';
+            acceptanceActsButton.style.width = '100%';
+            acceptanceActsButton.style.borderRadius = '4px';
+            acceptanceActsButton.style.touchAction = 'manipulation';
+            acceptanceActsButton.onmouseover = () => { acceptanceActsButton.style.backgroundColor = '#32CD32'; };
+            acceptanceActsButton.onmouseout = () => { acceptanceActsButton.style.backgroundColor = 'none'; };
+            acceptanceActsButton.onmousedown = () => { acceptanceActsButton.style.backgroundColor = '#2E8B57'; };
+            acceptanceActsButton.onmouseup = () => { acceptanceActsButton.style.backgroundColor = '#32CD32'; };
+            birthReportsButton.insertAdjacentElement('afterend', acceptanceActsButton);
+            const signOutButton = doc.createElement('button');
+            signOutButton.id = 'signOutButton';
+            signOutButton.textContent = 'Iziet';
+            signOutButton.onclick = () => window.parent.signOut();
+            signOutButton.style.background = 'none';
+            signOutButton.style.border = 'none';
+            signOutButton.style.color = 'white';
+            signOutButton.style.padding = '8px 12px';
+            signOutButton.style.cursor = 'pointer';
+            signOutButton.style.fontSize = '10px';
+            signOutButton.style.fontWeight = 'bold';
+            signOutButton.style.lineHeight = '1.5';
+            signOutButton.style.transition = 'background 0.2s';
+            signOutButton.style.margin = '0 2px';
+            signOutButton.style.width = '100%';
+            signOutButton.style.borderRadius = '4px';
+            signOutButton.style.touchAction = 'manipulation';
+            signOutButton.onmouseover = () => { signOutButton.style.backgroundColor = '#32CD32'; };
+            signOutButton.onmouseout = () => { signOutButton.style.backgroundColor = 'none'; };
+            signOutButton.onmousedown = () => { signOutButton.style.backgroundColor = '#2E8B57'; };
+            signOutButton.onmouseup = () => { signOutButton.style.backgroundColor = '#32CD32'; };
+            acceptanceActsButton.insertAdjacentElement('afterend', signOutButton);
+            document.getElementById('navMenu').classList.remove('visible');
+            logDebug('Successfully injected buttons into iframe nav');
+          } else {
+            const signOutButton = doc.createElement('button');
+            signOutButton.id = 'signOutButton';
+            signOutButton.textContent = 'Iziet';
+            signOutButton.onclick = () => window.parent.signOut();
+            signOutButton.style.background = 'none';
+            signOutButton.style.border = 'none';
+            signOutButton.style.color = 'white';
+            signOutButton.style.padding = '8px 12px';
+            signOutButton.style.cursor = 'pointer';
+            signOutButton.style.fontSize = '10px';
+            signOutButton.style.fontWeight = 'bold';
+            signOutButton.style.lineHeight = '1.5';
+            signOutButton.style.transition = 'background 0.2s';
+            signOutButton.style.margin = '0 2px';
+            signOutButton.style.width = '100%';
+            signOutButton.style.borderRadius = '4px';
+            signOutButton.style.touchAction = 'manipulation';
+            signOutButton.onmouseover = () => { signOutButton.style.backgroundColor = '#32CD32'; };
+            signOutButton.onmouseout = () => { signOutButton.style.backgroundColor = 'none'; };
+            signOutButton.onmousedown = () => { signOutButton.style.backgroundColor = '#2E8B57'; };
+            signOutButton.onmouseup = () => { signOutButton.style.backgroundColor = '#32CD32'; };
+            newEntryButton.insertAdjacentElement('afterend', signOutButton);
+            document.getElementById('navMenu').classList.remove('visible');
+            logDebug('Injected only Iziet button for non-whitelisted user');
+          }
+          try {
+            const style = doc.createElement('style');
+            style.textContent = `
+              .table-container, .content {
+                width: 100% !important;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+              }
+              table {
+                width: 100% !important;
+                border-collapse: collapse;
+                font-size: 12px !important;
+                display: table;
+                table-layout: fixed !important;
+              }
+              th, td {
+                border: 1px solid #ddd !important;
+                padding: 6px !important;
+                text-align: left !important;
+                font-size: 12px !important;
+                flex-grow: 1 !important;
+                min-width: 120px !important;
+              }
+              th {
+                background: #f9f9f9 !important;
+                font-weight: bold !important;
+              }
+            `;
+            doc.head.appendChild(style);
+            const tables = doc.querySelectorAll('table');
+            logDebug('Injected table styles into main iframe, found ' + tables.length + ' tables');
+            tables.forEach(table => {
+              table.style.width = '100% !important';
+              table.style.tableLayout = 'fixed !important';
+              const thElements = table.querySelectorAll('th');
+              thElements.forEach(th => {
+                th.style.flexGrow = '1 !important';
+                th.style.minWidth = '120px !important';
+              });
+              const tdElements = table.querySelectorAll('td');
+              tdElements.forEach(td => {
+                td.style.flexGrow = '1 !important';
+                td.style.minWidth = '120px !important';
+              });
+            });
+            const script = doc.createElement('script');
+            script.textContent = `
+              function sanitize(str) {
+                if (!str) return '';
+                return String(str)
+                  .replace(/&/g, '&amp;')
+                  .replace(/"/g, '&quot;')
+                  .replace(/'/g, '&#39;')
+                  .replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;');
+              }
+              window.openFullView = function(sectionName, rowIndex) {
+                console.log('[iframe] Opening full view for: ' + sectionName + ', row: ' + rowIndex);
+                try {
+                  const data = window.animalData?.[sectionName];
+                  if (!data) {
+                    console.error('[iframe] Data not found for section: ' + sectionName);
+                    document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 12px; text-align: center;">Kļūda: Dati nav atrasti sadaļai ' + sectionName + '</div>';
+                    return;
+                  }
+                  const headers = data.headers;
+                  const row = data.rows[rowIndex];
+                  if (!row) {
+                    console.error('[iframe] Row not found at index: ' + rowIndex);
+                    document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 12px; text-align: center;">Kļūda: Rinda nav atrasta index ' + rowIndex + '</div>';
+                    return;
+                  }
+                  const modal = document.getElementById('fullViewModal');
+                  const content = document.getElementById('fullViewContent');
+                  if (!modal || !content) {
+                    console.error('[iframe] Modal or content element not found');
+                    document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 12px; text-align: center;">Kļūda: Modālis vai satura elements nav atrasts</div>';
+                    return;
+                  }
+                  window.currentEditingData = { sheetName: sectionName, rowIndex: rowIndex + 1, headers: headers };
+                  const photoUrlIndex = headers.indexOf('Dzīvnieka foto');
+                  const nameIndex = headers.indexOf('Dzīvnieka nosaukums latviski');
+                  const photoUrlRaw = photoUrlIndex >= 0 && row[photoUrlIndex] ? String(row[photoUrlIndex]).trim() : '';
+                  const animalNameRaw = nameIndex >= 0 && row[nameIndex] ? String(row[nameIndex]).trim() : 'Dzīvnieks';
+                  const photoUrl = sanitize(photoUrlRaw);
+                  const animalName = sanitize(animalNameRaw);
+                  console.log('[iframe] photoUrlRaw: ' + photoUrlRaw);
+                  console.log('[iframe] photoUrl: ' + photoUrl);
+                  console.log('[iframe] animalNameRaw: ' + animalNameRaw);
+                  console.log('[iframe] animalName: ' + animalName);
+                  console.log('[iframe] Headers length: ' + headers.length);
+                  console.log('[iframe] Row length: ' + row.length);
+                  let html = '<div class="table-container" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">';
+                  html += '<h3 style="margin-bottom: 15px; font-size: 14px; text-align: center;">Dzīvnieka detalizēts apraksts</h3>';
+                  if (photoUrl && photoUrl.match(/^https?:\/\/[^\s<>"']+$/)) {
+                    html += '<div style="position: relative; width: 100%; max-width: 300px; margin: 0 auto 15px auto; text-align: center;">';
+                    html += '<img src="' + photoUrl + '" alt="' + animalName + '" class="animal-photo" style="max-width: 100%; height: auto; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: block; margin: 0 auto;" onload="this.style.display=\\'block\\'; this.nextElementSibling.style.display=\\'none\\';" onerror="this.style.display=\\'none\\'; this.nextElementSibling.style.display=\\'block\\';">';
+                    html += '<div class="no-photo" style="display: none; color: #666; font-style: italic; text-align: center; font-size: 12px;">Attēls nav pieejams vai nav derīgs</div>';
+                    html += '</div>';
+                  } else {
+                    html += '<div class="no-photo" style="color: #666; font-style: italic; text-align: center; margin-bottom: 15px; font-size: 12px;">Nav pieejams foto</div>';
+                  }
+                  html += '<h4 style="text-align: center; margin-bottom: 15px; font-size: 12px;">' + animalName + '</h4>';
+                  html += '<table style="width: 100% !important; border-collapse: collapse; font-size: 12px !important; table-layout: fixed !important;"><tbody>';
                   for (let i = 0; i < headers.length; i++) {
+                    if (headers[i] === 'Dzīvnieka foto' || headers[i] === 'Dzīvnieka nosaukums latviski') continue;
                     const header = sanitize(headers[i] || '');
                     const value = sanitize(row[i] || '');
-                    html += '<div class="form-group" style="margin-bottom: 12px;">';
-                    html += '<label for="edit-' + i + '" style="display: block; margin-bottom: 5px; font-size: 9px;">' + header + '</label>';
-                    if (header === 'Karantīna') {
-                      html += '<select id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px;">';
-                      html += '<option value="">Izvēlieties statusu</option>';
-                      html += '<option value="Jā"' + (value === 'Jā' ? ' selected' : '') + '>Jā</option>';
-                      html += '<option value="Nē"' + (value === 'Nē' ? ' selected' : '') + '>Nē</option>';
-                      html += '</select>';
-                    } else if (header.includes('datums')) {
-                      html += '<input type="date" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px;">';
-                    } else if (header === 'Dzīvnieku skaits') {
-                      html += '<input type="number" id="edit-' + i + '" name="' + header + '" value="' + value + '" min="1" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px;">';
-                    } else if (header === 'Ārstēšana' || header === 'Piezīmes') {
-                      html += '<textarea id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-size: 9px;" rows="3">' + value + '</textarea>';
-                    } else if (header === 'Dzīvnieka foto') {
-                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px;" placeholder="Ievadiet attēla URL">';
-                    } else {
-                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px;">';
+                    html += '<tr>';
+                    html += '<th style="text-align: left; border: 1px solid #ddd; padding: 6px; width: 40%; background: #f9f9f9; font-size: 12px; min-width: 120px !important;">' + header + '</th>';
+                    html += '<td style="border: 1px solid #ddd; padding: 6px; font-size: 12px; min-width: 120px !important;">' + value + '</td>';
+                    html += '</tr>';
+                  }
+                  html += '</tbody></table>';
+                  html += '</div>';
+                  if (isWhitelisted(userEmail)) {
+                    html += '<button class="btn-edit" onclick="toggleEditForm()" style="margin: 15px auto; background: #2E8B57; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; display: block; font-size: 12px; touch-action: manipulation;">Labot ierakstu</button>';
+                    html += '<div id="editForm" class="edit-form" style="margin: 15px; display: none;">';
+                    html += '<h4 style="margin-bottom: 10px; font-size: 12px;">Labot ierakstu</h4>';
+                    html += '<form id="edit-entry-form" onsubmit="return submitEditForm();">';
+                    for (let i = 0; i < headers.length; i++) {
+                      const header = sanitize(headers[i] || '');
+                      const value = sanitize(row[i] || '');
+                      html += '<div class="form-group" style="margin-bottom: 12px;">';
+                      html += '<label for="edit-' + i + '" style="display: block; margin-bottom: 5px; font-size: 12px;">' + header + '</label>';
+                      if (header === 'Karantīna') {
+                        html += '<select id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">';
+                        html += '<option value="">Izvēlieties statusu</option>';
+                        html += '<option value="Jā"' + (value === 'Jā' ? ' selected' : '') + '>Jā</option>';
+                        html += '<option value="Nē"' + (value === 'Nē' ? ' selected' : '') + '>Nē</option>';
+                        html += '</select>';
+                      } else if (header.includes('datums')) {
+                        html += '<input type="date" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">';
+                      } else if (header === 'Dzīvnieku skaits') {
+                        html += '<input type="number" id="edit-' + i + '" name="' + header + '" value="' + value + '" min="1" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">';
+                      } else if (header === 'Ārstēšana' || header === 'Piezīmes') {
+                        html += '<textarea id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-size: 12px;" rows="3">' + value + '</textarea>';
+                      } else if (header === 'Dzīvnieka foto') {
+                        html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" placeholder="Ievadiet attēla URL">';
+                      } else {
+                        html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">';
+                      }
+                      html += '</div>';
                     }
+                    html += '<button type="submit" style="background: #2E8B57; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; touch-action: manipulation;">Saglabāt izmaiņas</button>';
+                    html += '<button type="button" onclick="toggleEditForm()" style="margin-left: 10px; background: #ccc; color: black; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; touch-action: manipulation;">Atcelt</button>';
+                    html += '</form>';
                     html += '</div>';
                   }
-                  html += '<button type="submit" style="background: #2E8B57; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; touch-action: manipulation;">Saglabāt izmaiņas</button>';
-                  html += '<button type="button" onclick="toggleEditForm()" style="margin-left: 10px; background: #ccc; color: black; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; touch-action: manipulation;">Atcelt</button>';
-                  html += '</form>';
-                  html += '</div>';
+                  content.innerHTML = '<span id="closeFullView" onclick="closeFullView()" style="position: fixed; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #2E8B57; padding: 8px; touch-action: manipulation; z-index: 2600;">&times;</span>' + html;
+                  modal.style.display = 'block';
+                  console.log('[iframe] Modal content set successfully');
+                } catch (e) {
+                  console.error('[iframe] Error in openFullView: ' + e.message);
+                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 12px; text-align: center;">Kļūda atverot detalizēto skatu: ' + e.message + '</div>';
                 }
-                content.innerHTML = '<span id="closeFullView" onclick="closeFullView()" style="position: fixed; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #2E8B57; padding: 8px; touch-action: manipulation; z-index: 2600;">&times;</span>' + html;
-                modal.style.display = 'block';
-                console.log('[iframe] Modal content set successfully');
-              } catch (e) {
-                console.error('[iframe] Error in openFullView: ' + e.message);
-                document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 9px; text-align: center;">Kļūda atverot detalizēto skatu: ' + e.message + '</div>';
-              }
-            };
-          `;
-          doc.head.appendChild(script);
-          logDebug('Injected openFullView override into iframe');
-        } catch (e) {
-          console.error('[index-mobile.html] Failed to inject openFullView: ' + e.message);
-        }
-      } catch (error) {
-        console.error('[index-mobile.html] Failed to inject buttons: ' + error.message);
-        if (isWhitelisted(userEmail)) {
-          document.getElementById('navMenu').classList.remove('visible');
-          logDebug('Hiding navMenu, buttons injected in iframe for whitelisted user');
-        } else {
-          document.getElementById('deathReportsButton').style.display = 'none';
-          document.getElementById('birthReportsButton').style.display = 'none';
-          document.getElementById('acceptanceActsButton').style.display = 'none';
-          document.getElementById('navMenu').classList.remove('visible');
-          logDebug('Hiding navMenu, only Iziet button injected for non-whitelisted user');
+              };
+            `;
+            doc.head.appendChild(script);
+            logDebug('Injected openFullView override into iframe');
+          } catch (e) {
+            console.error('[index-mobile.html] Failed to inject openFullView: ' + e.message);
+          }
+        } catch (error) {
+          console.error('[index-mobile.html] Failed to inject buttons: ' + error.message);
+          if (isWhitelisted(userEmail)) {
+            document.getElementById('navMenu').classList.remove('visible');
+            logDebug('Hiding navMenu, buttons injected in iframe for whitelisted user');
+          } else {
+            document.getElementById('deathReportsButton').style.display = 'none';
+            document.getElementById('birthReportsButton').style.display = 'none';
+            document.getElementById('acceptanceActsButton').style.display = 'none';
+            document.getElementById('navMenu').classList.remove('visible');
+            logDebug('Hiding navMenu, only Iziet button injected for non-whitelisted user');
+          }
         }
       }
+      applyButtonsAndStyles();
     }
     window.onload = async () => {
       logDebug('Starting authentication check');
