@@ -204,9 +204,9 @@
     }
     #deathReportsModalContent, #birthReportsModalContent, #acceptanceActsModalContent {
       background: #ffffff;
-      width: 85vw;
-      max-width: 500px;
-      height: 75vh;
+      width: 90vw;
+      max-width: 600px;
+      height: 80vh;
       position: relative;
       border-radius: 8px;
       overflow: auto;
@@ -246,7 +246,7 @@
       width: 100%;
       max-width: 100%;
       border-collapse: collapse;
-      font-size: 9px !important;
+      font-size: 9px;
       white-space: normal;
       word-break: break-all;
     }
@@ -254,7 +254,7 @@
       border: 1px solid #ddd;
       padding: 3px;
       text-align: left;
-      font-size: 9px !important;
+      font-size: 9px;
       min-width: 50px;
       max-width: 100px;
     }
@@ -379,7 +379,7 @@
       modal.style.display = 'flex';
       iframe.onload = () => {
         logDebug('Death Reports iframe loaded successfully');
-        injectModalTableStyles(iframe);
+        injectModalTableStyles(iframe, 'deathReportsIframe');
       };
       iframe.onerror = () => {
         logDebug('Error loading Death Reports iframe');
@@ -410,7 +410,7 @@
       modal.style.display = 'flex';
       iframe.onload = () => {
         logDebug('Birth Reports iframe loaded successfully');
-        injectModalTableStyles(iframe);
+        injectModalTableStyles(iframe, 'birthReportsIframe');
       };
       iframe.onerror = () => {
         logDebug('Error loading Birth Reports iframe');
@@ -441,7 +441,7 @@
       modal.style.display = 'flex';
       iframe.onload = () => {
         logDebug('Acceptance Acts iframe loaded successfully');
-        injectModalTableStyles(iframe);
+        injectModalTableStyles(iframe, 'acceptanceActsIframe');
       };
       iframe.onerror = () => {
         logDebug('Error loading Acceptance Acts iframe');
@@ -465,16 +465,17 @@
       document.getElementById('loadingOverlay').classList.add('hidden');
       document.getElementById('loadingOverlay').style.display = 'none';
     }
-    function injectModalTableStyles(iframe) {
+    function injectModalTableStyles(iframe, iframeId) {
       try {
         const doc = iframe.contentDocument || iframe.contentWindow.document;
         if (!doc) {
-          throw new Error('Cannot access modal iframe document');
+          throw new Error('Cannot access iframe document for ' + iframeId);
         }
         const style = doc.createElement('style');
         style.textContent = `
-          .table-container {
+          .table-container, .content, form, div[role="form"] {
             width: 100%;
+            max-width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
           }
@@ -482,14 +483,14 @@
             width: 100%;
             max-width: 100%;
             border-collapse: collapse;
-            font-size: 9px !important;
+            font-size: 9px;
             white-space: normal;
             word-break: break-all;
           }
           th, td {
             border: 1px solid #ddd;
             padding: 3px;
-            font-size: 9px !important;
+            font-size: 9px;
             min-width: 50px;
             max-width: 100px;
             text-align: left;
@@ -500,9 +501,17 @@
           }
         `;
         doc.head.appendChild(style);
-        logDebug('Injected table styles into modal iframe');
+        const tables = doc.querySelectorAll('table');
+        logDebug('Injected table styles into ' + iframeId + ', found ' + tables.length + ' tables');
+        tables.forEach(table => {
+          table.style.width = '100%';
+          table.style.maxWidth = '100%';
+          table.style.fontSize = '9px';
+          table.style.whiteSpace = 'normal';
+          table.style.wordBreak = 'break-all';
+        });
       } catch (error) {
-        console.error('[index-mobile.html] Failed to inject modal table styles: ' + error.message);
+        console.error('[index-mobile.html] Failed to inject table styles into ' + iframeId + ': ' + error.message);
       }
     }
     function handleCredentialResponse(response) {
@@ -768,8 +777,9 @@
         try {
           const style = doc.createElement('style');
           style.textContent = `
-            .table-container {
+            .table-container, .content {
               width: 100%;
+              max-width: 100%;
               overflow-x: auto;
               -webkit-overflow-scrolling: touch;
             }
@@ -777,14 +787,14 @@
               width: 100%;
               max-width: 100%;
               border-collapse: collapse;
-              font-size: 9px !important;
+              font-size: 9px;
               white-space: normal;
               word-break: break-all;
             }
             th, td {
               border: 1px solid #ddd;
               padding: 3px;
-              font-size: 9px !important;
+              font-size: 9px;
               min-width: 50px;
               max-width: 100px;
               text-align: left;
@@ -793,13 +803,17 @@
               background: #f9f9f9;
               font-weight: bold;
             }
-            .content {
-              overflow-x: auto;
-              -webkit-overflow-scrolling: touch;
-            }
           `;
           doc.head.appendChild(style);
-          logDebug('Injected table styles into main iframe');
+          const tables = doc.querySelectorAll('table');
+          logDebug('Injected table styles into main iframe, found ' + tables.length + ' tables');
+          tables.forEach(table => {
+            table.style.width = '100%';
+            table.style.maxWidth = '100%';
+            table.style.fontSize = '9px';
+            table.style.whiteSpace = 'normal';
+            table.style.wordBreak = 'break-all';
+          });
           const script = doc.createElement('script');
           script.textContent = `
             function sanitize(str) {
@@ -858,14 +872,14 @@
                   html += '<div class="no-photo" style="color: #666; font-style: italic; text-align: center; margin-bottom: 15px; font-size: 9px;">Nav pieejams foto</div>';
                 }
                 html += '<h4 style="text-align: center; margin-bottom: 15px; font-size: 12px;">' + animalName + '</h4>';
-                html += '<table style="width: 100%; max-width: 100%; border-collapse: collapse; font-size: 9px !important; white-space: normal; word-break: break-all;"><tbody>';
+                html += '<table style="width: 100%; max-width: 100%; border-collapse: collapse; font-size: 9px; white-space: normal; word-break: break-all;"><tbody>';
                 for (let i = 0; i < headers.length; i++) {
                   if (headers[i] === 'Dzīvnieka foto' || headers[i] === 'Dzīvnieka nosaukums latviski') continue;
                   const header = sanitize(headers[i] || '');
                   const value = sanitize(row[i] || '');
                   html += '<tr>';
-                  html += '<th style="text-align: left; border: 1px solid #ddd; padding: 3px; width: 40%; background: #f9f9f9; font-size: 9px !important; min-width: 50px; max-width: 100px;">' + header + '</th>';
-                  html += '<td style="border: 1px solid #ddd; padding: 3px; font-size: 9px !important; min-width: 50px; max-width: 100px;">' + value + '</td>';
+                  html += '<th style="text-align: left; border: 1px solid #ddd; padding: 3px; width: 40%; background: #f9f9f9; font-size: 9px; min-width: 50px; max-width: 100px;">' + header + '</th>';
+                  html += '<td style="border: 1px solid #ddd; padding: 3px; font-size: 9px; min-width: 50px; max-width: 100px;">' + value + '</td>';
                   html += '</tr>';
                 }
                 html += '</tbody></table>';
