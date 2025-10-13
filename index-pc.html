@@ -192,6 +192,7 @@
       font-size: 24px;
       cursor: pointer;
       color: #2E8B57;
+      z-index: 2100;
     }
     #deathReportsError, #birthReportsError, #acceptanceActsError {
       color: red;
@@ -278,6 +279,8 @@
         return;
       }
       logDebug('Opening Death Reports modal');
+      document.getElementById('parentNav').style.display = 'none';
+      logDebug('Hid parentNav before opening Death Reports modal');
       const modal = document.getElementById('deathReportsModal');
       const iframe = document.getElementById('deathReportsIframe');
       const errorDiv = document.getElementById('deathReportsError');
@@ -298,6 +301,10 @@
       const iframe = document.getElementById('deathReportsIframe');
       modal.style.display = 'none';
       iframe.src = '';
+      if (isWhitelisted(userEmail)) {
+        document.getElementById('parentNav').style.display = 'flex';
+        logDebug('Restored parentNav for whitelisted user after closing Death Reports modal');
+      }
     }
     function openBirthReports() {
       if (!isWhitelisted(userEmail)) {
@@ -305,6 +312,8 @@
         return;
       }
       logDebug('Opening Birth Reports modal');
+      document.getElementById('parentNav').style.display = 'none';
+      logDebug('Hid parentNav before opening Birth Reports modal');
       const modal = document.getElementById('birthReportsModal');
       const iframe = document.getElementById('birthReportsIframe');
       const errorDiv = document.getElementById('birthReportsError');
@@ -325,6 +334,10 @@
       const iframe = document.getElementById('birthReportsIframe');
       modal.style.display = 'none';
       iframe.src = '';
+      if (isWhitelisted(userEmail)) {
+        document.getElementById('parentNav').style.display = 'flex';
+        logDebug('Restored parentNav for whitelisted user after closing Birth Reports modal');
+      }
     }
     function openAcceptanceActs() {
       if (!isWhitelisted(userEmail)) {
@@ -332,6 +345,8 @@
         return;
       }
       logDebug('Opening Acceptance Acts modal');
+      document.getElementById('parentNav').style.display = 'none';
+      logDebug('Hid parentNav before opening Acceptance Acts modal');
       const modal = document.getElementById('acceptanceActsModal');
       const iframe = document.getElementById('acceptanceActsIframe');
       const errorDiv = document.getElementById('acceptanceActsError');
@@ -352,6 +367,10 @@
       const iframe = document.getElementById('acceptanceActsIframe');
       modal.style.display = 'none';
       iframe.src = '';
+      if (isWhitelisted(userEmail)) {
+        document.getElementById('parentNav').style.display = 'flex';
+        logDebug('Restored parentNav for whitelisted user after closing Acceptance Acts modal');
+      }
     }
     function logDebug(message) {
       console.log('[index-pc.html] ' + message);
@@ -687,7 +706,7 @@
                   html += '</tr>';
                 }
                 html += '</tbody></table>';
-                if (${canEdit}) {
+                if (isWhitelisted(userEmail)) {
                   html += '<button class="btn-edit" onclick="toggleEditForm()" style="margin: 20px auto; background: #2E8B57; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; display: block;">Labot ierakstu</button>';
                   html += '<div id="editForm" class="edit-form" style="margin-top: 20px; display: none;">';
                   html += '<h4 style="margin-bottom: 15px;">Labot ierakstu</h4>';
@@ -721,7 +740,7 @@
                   html += '</form>';
                   html += '</div>';
                 }
-                content.innerHTML = '<span id="closeFullView" onclick="closeFullView()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">&times;</span>' + html;
+                content.innerHTML = '<span id="closeFullView" onclick="closeFullView()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; z-index: 2100;">&times;</span>' + html;
                 modal.style.display = 'block';
                 console.log('[iframe] Modal content set successfully');
               } catch (e) {
@@ -797,11 +816,13 @@
               document.getElementById('deathReportsButton').style.display = 'inline-block';
               document.getElementById('birthReportsButton').style.display = 'inline-block';
               document.getElementById('acceptanceActsButton').style.display = 'inline-block';
+              logDebug('Showing parentNav with all buttons for whitelisted user');
             } else {
               document.getElementById('parentNav').style.display = 'flex';
               document.getElementById('deathReportsButton').style.display = 'none';
               document.getElementById('birthReportsButton').style.display = 'none';
               document.getElementById('acceptanceActsButton').style.display = 'none';
+              logDebug('Showing parentNav with only Iziet button for non-whitelisted user');
             }
             document.getElementById('loadingOverlay').classList.add('hidden');
             setTimeout(() => {
