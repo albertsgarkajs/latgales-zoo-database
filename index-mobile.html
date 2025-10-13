@@ -13,7 +13,7 @@
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-      overflow: auto;
+      overflow-x: hidden;
     }
     #loadingOverlay {
       position: fixed;
@@ -38,13 +38,14 @@
       pointer-events: none;
     }
     #loadingOverlay img {
-      width: 100px;
+      width: 80px;
       height: auto;
     }
     #loadingOverlay p {
       font-size: 14px;
       color: #2E8B57;
       margin-top: 6px;
+      text-align: center;
     }
     #loginContainer {
       position: fixed;
@@ -109,7 +110,7 @@
       position: fixed;
       top: 10px;
       right: 10px;
-      z-index: 1001;
+      z-index: 1002;
       cursor: pointer;
     }
     #hamburgerMenu img {
@@ -187,6 +188,7 @@
       font-style: italic;
       margin-bottom: 15px;
       font-size: 12px;
+      text-align: center;
     }
     #deathReportsModal, #birthReportsModal, #acceptanceActsModal {
       display: none;
@@ -202,9 +204,11 @@
     }
     #deathReportsModalContent, #birthReportsModalContent, #acceptanceActsModalContent {
       background: #ffffff;
-      width: 100%;
-      height: 100%;
+      width: 90%;
+      max-width: 600px;
+      height: 80%;
       position: relative;
+      border-radius: 8px;
       overflow: auto;
       box-sizing: border-box;
     }
@@ -214,14 +218,13 @@
       border: none;
     }
     #closeDeathReportsModal, #closeBirthReportsModal, #closeAcceptanceActsModal {
-      position: fixed;
+      position: absolute;
       top: 10px;
       right: 15px;
       font-size: 28px;
       cursor: pointer;
       color: #2E8B57;
       z-index: 2100;
-      padding: 10px;
       touch-action: manipulation;
     }
     #deathReportsError, #birthReportsError, #acceptanceActsError {
@@ -230,6 +233,46 @@
       padding: 15px;
       display: none;
       font-size: 14px;
+    }
+    /* Responsive Table Styling */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-top: 15px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: left;
+      font-size: 12px;
+      min-width: 100px;
+    }
+    th {
+      background: #f9f9f9;
+      font-weight: bold;
+    }
+    /* Ensure iframe tables are responsive */
+    iframe table {
+      width: 100%;
+      max-width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    iframe th, iframe td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      font-size: 12px;
+      min-width: 80px;
+    }
+    iframe th {
+      background: #f9f9f9;
     }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -292,11 +335,7 @@
       <iframe id="acceptanceActsIframe" src="" title="Pieņemšanas aktu forma"></iframe>
     </div>
   </div>
-  <iframe
-    id="appIframe"
-    src=""
-    title="Latgales Zoodārza Dzīvnieku Datubāze"
-  ></iframe>
+  <iframe id="appIframe" src="" title="Latgales Zoodārza Dzīvnieku Datubāze"></iframe>
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/a/*/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     const DEATH_REPORTS_URL = 'https://script.google.com/macros/s/AKfycbzffFO5FKMM0JNYMNabRQOlrFQhuiFk_Ax7hUruJh9fw5Nl-cvSvaWUVNmLhLyVEBrTQw/exec';
@@ -309,9 +348,33 @@
     }
     function toggleNavMenu() {
       const navMenu = document.getElementById('navMenu');
+      logDebug('Toggling navMenu, current classList: ' + navMenu.classList);
       navMenu.classList.toggle('visible');
+      logDebug('NavMenu toggled, new classList: ' + navMenu.classList);
     }
     document.getElementById('hamburgerMenu').addEventListener('click', toggleNavMenu);
+    document.getElementById('hamburgerMenu').addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      logDebug('Hamburger touchstart triggered');
+      toggleNavMenu();
+    });
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      const navMenu = document.getElementById('navMenu');
+      const hamburger = document.getElementById('hamburgerMenu');
+      if (!navMenu.contains(e.target) && !hamburger.contains(e.target) && navMenu.classList.contains('visible')) {
+        logDebug('Closing navMenu on outside click');
+        navMenu.classList.remove('visible');
+      }
+    });
+    document.addEventListener('touchstart', (e) => {
+      const navMenu = document.getElementById('navMenu');
+      const hamburger = document.getElementById('hamburgerMenu');
+      if (!navMenu.contains(e.target) && !hamburger.contains(e.target) && navMenu.classList.contains('visible')) {
+        logDebug('Closing navMenu on outside touch');
+        navMenu.classList.remove('visible');
+      }
+    });
     function openDeathReports() {
       if (!isWhitelisted(userEmail)) {
         showError('Nav piešķirtas izmantošanas tiesības, sazinieties ar administratoru e-pasts: albertsgarkajs@gmail.com');
@@ -467,7 +530,7 @@
           logDebug('Sign-out successful: ' + JSON.stringify(result));
           localStorage.removeItem('lastReload');
           userEmail = '';
-          document.getElementById('navMenu').style.display = 'none';
+          document.getElementById('navMenu').classList.remove('visible');
           document.getElementById('appIframe').style.display = 'none';
           document.getElementById('appIframe').src = '';
           document.getElementById('loginContainer').classList.remove('hidden');
@@ -484,7 +547,7 @@
         showError('Kļūda izrakstoties: ' + error.message);
         localStorage.removeItem('lastReload');
         userEmail = '';
-        document.getElementById('navMenu').style.display = 'none';
+        document.getElementById('navMenu').classList.remove('visible');
         document.getElementById('appIframe').style.display = 'none';
         document.getElementById('appIframe').src = '';
         document.getElementById('loginContainer').classList.remove('hidden');
@@ -519,7 +582,7 @@
           deathReportsButton.style.color = 'white';
           deathReportsButton.style.padding = '12px 16px';
           deathReportsButton.style.cursor = 'pointer';
-          deathReportsButton.style.fontSize = '14px';
+          deathReportsButton.style.fontSize = '12px';
           deathReportsButton.style.fontWeight = 'bold';
           deathReportsButton.style.lineHeight = '1.5';
           deathReportsButton.style.transition = 'background 0.2s';
@@ -549,7 +612,7 @@
           birthReportsButton.style.color = 'white';
           birthReportsButton.style.padding = '12px 16px';
           birthReportsButton.style.cursor = 'pointer';
-          deathReportsButton.style.fontSize = '14px';
+          birthReportsButton.style.fontSize = '12px';
           birthReportsButton.style.fontWeight = 'bold';
           birthReportsButton.style.lineHeight = '1.5';
           birthReportsButton.style.transition = 'background 0.2s';
@@ -579,7 +642,7 @@
           acceptanceActsButton.style.color = 'white';
           acceptanceActsButton.style.padding = '12px 16px';
           acceptanceActsButton.style.cursor = 'pointer';
-          acceptanceActsButton.style.fontSize = '14px';
+          acceptanceActsButton.style.fontSize = '12px';
           acceptanceActsButton.style.fontWeight = 'bold';
           acceptanceActsButton.style.lineHeight = '1.5';
           acceptanceActsButton.style.transition = 'background 0.2s';
@@ -609,7 +672,7 @@
           signOutButton.style.color = 'white';
           signOutButton.style.padding = '12px 16px';
           signOutButton.style.cursor = 'pointer';
-          signOutButton.style.fontSize = '14px';
+          signOutButton.style.fontSize = '12px';
           signOutButton.style.fontWeight = 'bold';
           signOutButton.style.lineHeight = '1.5';
           signOutButton.style.transition = 'background 0.2s';
@@ -630,8 +693,8 @@
             signOutButton.style.backgroundColor = '#32CD32';
           };
           acceptanceActsButton.insertAdjacentElement('afterend', signOutButton);
-          document.getElementById('navMenu').style.display = 'none';
-          logDebug('Successfully injected Nāves ziņojumi, Dzimšanas ziņojumi, Pieņemšanas akti, and Iziet buttons into iframe nav');
+          document.getElementById('navMenu').classList.remove('visible');
+          logDebug('Successfully injected buttons into iframe nav');
         } else {
           const signOutButton = doc.createElement('button');
           signOutButton.id = 'signOutButton';
@@ -642,7 +705,7 @@
           signOutButton.style.color = 'white';
           signOutButton.style.padding = '12px 16px';
           signOutButton.style.cursor = 'pointer';
-          signOutButton.style.fontSize = '14px';
+          signOutButton.style.fontSize = '12px';
           signOutButton.style.fontWeight = 'bold';
           signOutButton.style.lineHeight = '1.5';
           signOutButton.style.transition = 'background 0.2s';
@@ -663,10 +726,35 @@
             signOutButton.style.backgroundColor = '#32CD32';
           };
           newEntryButton.insertAdjacentElement('afterend', signOutButton);
-          document.getElementById('navMenu').style.display = 'none';
+          document.getElementById('navMenu').classList.remove('visible');
           logDebug('Injected only Iziet button for non-whitelisted user');
         }
         try {
+          const style = doc.createElement('style');
+          style.textContent = `
+            table {
+              width: 100%;
+              max-width: 100%;
+              border-collapse: collapse;
+              font-size: 12px;
+            }
+            th, td {
+              border: 1px solid #ddd;
+              padding: 6px;
+              font-size: 12px;
+              min-width: 80px;
+            }
+            th {
+              background: #f9f9f9;
+              font-weight: bold;
+            }
+            .content {
+              overflow-x: auto;
+              -webkit-overflow-scrolling: touch;
+            }
+          `;
+          doc.head.appendChild(style);
+          logDebug('Injected table styles into iframe');
           const script = doc.createElement('script');
           script.textContent = `
             function sanitize(str) {
@@ -714,7 +802,8 @@
                 console.log('[iframe] animalName: ' + animalName);
                 console.log('[iframe] Headers length: ' + headers.length);
                 console.log('[iframe] Row length: ' + row.length);
-                let html = '<h3 style="margin-bottom: 15px; font-size: 16px; text-align: center;">Dzīvnieka detalizēts apraksts</h3>';
+                let html = '<div class="table-container" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">';
+                html += '<h3 style="margin-bottom: 15px; font-size: 16px; text-align: center;">Dzīvnieka detalizēts apraksts</h3>';
                 if (photoUrl && photoUrl.match(/^https?:\/\/[^\s<>"']+$/)) {
                   html += '<div style="position: relative; width: 100%; max-width: 300px; margin: 0 auto 15px auto; text-align: center;">';
                   html += '<img src="' + photoUrl + '" alt="' + animalName + '" class="animal-photo" style="max-width: 100%; height: auto; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: block; margin: 0 auto;" onload="this.style.display=\\'block\\'; this.nextElementSibling.style.display=\\'none\\';" onerror="this.style.display=\\'none\\'; this.nextElementSibling.style.display=\\'block\\';">';
@@ -724,7 +813,7 @@
                   html += '<div class="no-photo" style="color: #666; font-style: italic; text-align: center; margin-bottom: 15px; font-size: 12px;">Nav pieejams foto</div>';
                 }
                 html += '<h4 style="text-align: center; margin-bottom: 15px; font-size: 14px;">' + animalName + '</h4>';
-                html += '<table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px;"><tbody>';
+                html += '<table style="width: 100%; border-collapse: collapse; font-size: 12px;"><tbody>';
                 for (let i = 0; i < headers.length; i++) {
                   if (headers[i] === 'Dzīvnieka foto' || headers[i] === 'Dzīvnieka nosaukums latviski') continue;
                   const header = sanitize(headers[i] || '');
@@ -735,6 +824,7 @@
                   html += '</tr>';
                 }
                 html += '</tbody></table>';
+                html += '</div>';
                 if (${canEdit}) {
                   html += '<button class="btn-edit" onclick="toggleEditForm()" style="margin: 15px auto; background: #2E8B57; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; display: block; font-size: 14px; touch-action: manipulation;">Labot ierakstu</button>';
                   html += '<div id="editForm" class="edit-form" style="margin: 15px; display: none;">';
@@ -786,13 +876,13 @@
       } catch (error) {
         console.error('[index-mobile.html] Failed to inject buttons: ' + error.message);
         if (isWhitelisted(userEmail)) {
-          document.getElementById('navMenu').style.display = 'none';
+          document.getElementById('navMenu').classList.remove('visible');
           logDebug('Hiding navMenu, buttons injected in iframe for whitelisted user');
         } else {
           document.getElementById('deathReportsButton').style.display = 'none';
           document.getElementById('birthReportsButton').style.display = 'none';
           document.getElementById('acceptanceActsButton').style.display = 'none';
-          document.getElementById('navMenu').style.display = 'none';
+          document.getElementById('navMenu').classList.remove('visible');
           logDebug('Hiding navMenu, only Iziet button injected for non-whitelisted user');
         }
       }
@@ -841,7 +931,7 @@
             logDebug('Iframe loaded successfully');
             injectButtons(iframe);
             if (isWhitelisted(userEmail)) {
-              document.getElementById('navMenu').style.display = 'none';
+              document.getElementById('navMenu').classList.remove('visible');
               document.getElementById('deathReportsButton').style.display = 'block';
               document.getElementById('birthReportsButton').style.display = 'block';
               document.getElementById('acceptanceActsButton').style.display = 'block';
@@ -850,7 +940,7 @@
               document.getElementById('deathReportsButton').style.display = 'none';
               document.getElementById('birthReportsButton').style.display = 'none';
               document.getElementById('acceptanceActsButton').style.display = 'none';
-              document.getElementById('navMenu').style.display = 'none';
+              document.getElementById('navMenu').classList.remove('visible');
               logDebug('Iframe buttons injected for non-whitelisted user');
             }
             document.getElementById('loadingOverlay').classList.add('hidden');
@@ -864,7 +954,7 @@
         } else {
           logDebug('User is not authenticated, showing login container');
           document.getElementById('loginContainer').classList.remove('hidden');
-          document.getElementById('navMenu').style.display = 'none';
+          document.getElementById('navMenu').classList.remove('visible');
           iframe.style.display = 'none';
           document.getElementById('loadingOverlay').classList.add('hidden');
           document.getElementById('loadingOverlay').style.display = 'none';
