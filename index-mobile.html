@@ -187,7 +187,7 @@
       color: #666;
       font-style: italic;
       margin-bottom: 15px;
-      font-size: 12px;
+      font-size: 10px;
       text-align: center;
     }
     #deathReportsModal, #birthReportsModal, #acceptanceActsModal {
@@ -198,19 +198,18 @@
       width: 100%;
       height: 100vh;
       background: rgba(0, 0, 0, 0.5);
-      z-index: 2000;
+      z-index: 2500;
       justify-content: center;
       align-items: center;
     }
     #deathReportsModalContent, #birthReportsModalContent, #acceptanceActsModalContent {
       background: #ffffff;
-      width: 90vw;
-      max-width: 600px;
-      height: 80vh;
+      width: 85vw;
+      max-width: 500px;
+      height: 75vh;
       position: relative;
       border-radius: 8px;
-      overflow-x: auto;
-      overflow-y: auto;
+      overflow: auto;
       -webkit-overflow-scrolling: touch;
       box-sizing: border-box;
     }
@@ -223,10 +222,10 @@
       position: absolute;
       top: 10px;
       right: 15px;
-      font-size: 28px;
+      font-size: 24px;
       cursor: pointer;
       color: #2E8B57;
-      z-index: 2100;
+      z-index: 2600;
       touch-action: manipulation;
     }
     #deathReportsError, #birthReportsError, #acceptanceActsError {
@@ -234,7 +233,7 @@
       text-align: center;
       padding: 15px;
       display: none;
-      font-size: 12px;
+      font-size: 10px;
     }
     /* Responsive Table Styling for Main Content and openFullView */
     .table-container {
@@ -247,17 +246,17 @@
       width: 100%;
       max-width: 100%;
       border-collapse: collapse;
-      font-size: 10px;
+      font-size: 9px !important;
       white-space: normal;
-      word-wrap: break-word;
+      word-break: break-all;
     }
     th, td {
       border: 1px solid #ddd;
-      padding: 4px;
+      padding: 3px;
       text-align: left;
-      font-size: 10px;
-      min-width: 60px;
-      max-width: 150px;
+      font-size: 9px !important;
+      min-width: 50px;
+      max-width: 100px;
     }
     th {
       background: #f9f9f9;
@@ -369,13 +368,15 @@
         return;
       }
       logDebug('Opening Death Reports modal');
+      const navMenu = document.getElementById('navMenu');
+      navMenu.classList.remove('visible');
+      logDebug('Hid navMenu before opening Death Reports modal');
       const modal = document.getElementById('deathReportsModal');
       const iframe = document.getElementById('deathReportsIframe');
       const errorDiv = document.getElementById('deathReportsError');
       errorDiv.style.display = 'none';
       iframe.src = DEATH_REPORTS_URL;
       modal.style.display = 'flex';
-      toggleNavMenu();
       iframe.onload = () => {
         logDebug('Death Reports iframe loaded successfully');
         injectModalTableStyles(iframe);
@@ -398,13 +399,15 @@
         return;
       }
       logDebug('Opening Birth Reports modal');
+      const navMenu = document.getElementById('navMenu');
+      navMenu.classList.remove('visible');
+      logDebug('Hid navMenu before opening Birth Reports modal');
       const modal = document.getElementById('birthReportsModal');
       const iframe = document.getElementById('birthReportsIframe');
       const errorDiv = document.getElementById('birthReportsError');
       errorDiv.style.display = 'none';
       iframe.src = BIRTH_REPORTS_URL;
       modal.style.display = 'flex';
-      toggleNavMenu();
       iframe.onload = () => {
         logDebug('Birth Reports iframe loaded successfully');
         injectModalTableStyles(iframe);
@@ -427,13 +430,15 @@
         return;
       }
       logDebug('Opening Acceptance Acts modal');
+      const navMenu = document.getElementById('navMenu');
+      navMenu.classList.remove('visible');
+      logDebug('Hid navMenu before opening Acceptance Acts modal');
       const modal = document.getElementById('acceptanceActsModal');
       const iframe = document.getElementById('acceptanceActsIframe');
       const errorDiv = document.getElementById('acceptanceActsError');
       errorDiv.style.display = 'none';
       iframe.src = ACCEPTANCE_ACTS_URL;
       modal.style.display = 'flex';
-      toggleNavMenu();
       iframe.onload = () => {
         logDebug('Acceptance Acts iframe loaded successfully');
         injectModalTableStyles(iframe);
@@ -477,16 +482,16 @@
             width: 100%;
             max-width: 100%;
             border-collapse: collapse;
-            font-size: 10px;
+            font-size: 9px !important;
             white-space: normal;
-            word-wrap: break-word;
+            word-break: break-all;
           }
           th, td {
             border: 1px solid #ddd;
-            padding: 4px;
-            font-size: 10px;
-            min-width: 60px;
-            max-width: 120px;
+            padding: 3px;
+            font-size: 9px !important;
+            min-width: 50px;
+            max-width: 100px;
             text-align: left;
           }
           th {
@@ -772,16 +777,16 @@
               width: 100%;
               max-width: 100%;
               border-collapse: collapse;
-              font-size: 10px;
+              font-size: 9px !important;
               white-space: normal;
-              word-wrap: break-word;
+              word-break: break-all;
             }
             th, td {
               border: 1px solid #ddd;
-              padding: 4px;
-              font-size: 10px;
-              min-width: 60px;
-              max-width: 120px;
+              padding: 3px;
+              font-size: 9px !important;
+              min-width: 50px;
+              max-width: 100px;
               text-align: left;
             }
             th {
@@ -812,21 +817,21 @@
                 const data = window.animalData?.[sectionName];
                 if (!data) {
                   console.error('[iframe] Data not found for section: ' + sectionName);
-                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 10px; text-align: center;">Kļūda: Dati nav atrasti sadaļai ' + sectionName + '</div>';
+                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 9px; text-align: center;">Kļūda: Dati nav atrasti sadaļai ' + sectionName + '</div>';
                   return;
                 }
                 const headers = data.headers;
                 const row = data.rows[rowIndex];
                 if (!row) {
                   console.error('[iframe] Row not found at index: ' + rowIndex);
-                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 10px; text-align: center;">Kļūda: Rinda nav atrasta index ' + rowIndex + '</div>';
+                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 9px; text-align: center;">Kļūda: Rinda nav atrasta index ' + rowIndex + '</div>';
                   return;
                 }
                 const modal = document.getElementById('fullViewModal');
                 const content = document.getElementById('fullViewContent');
                 if (!modal || !content) {
                   console.error('[iframe] Modal or content element not found');
-                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 10px; text-align: center;">Kļūda: Modālis vai satura elements nav atrasts</div>';
+                  document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 9px; text-align: center;">Kļūda: Modālis vai satura elements nav atrasts</div>';
                   return;
                 }
                 window.currentEditingData = { sheetName: sectionName, rowIndex: rowIndex + 1, headers: headers };
@@ -847,25 +852,25 @@
                 if (photoUrl && photoUrl.match(/^https?:\/\/[^\s<>"']+$/)) {
                   html += '<div style="position: relative; width: 100%; max-width: 300px; margin: 0 auto 15px auto; text-align: center;">';
                   html += '<img src="' + photoUrl + '" alt="' + animalName + '" class="animal-photo" style="max-width: 100%; height: auto; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: block; margin: 0 auto;" onload="this.style.display=\\'block\\'; this.nextElementSibling.style.display=\\'none\\';" onerror="this.style.display=\\'none\\'; this.nextElementSibling.style.display=\\'block\\';">';
-                  html += '<div class="no-photo" style="display: none; color: #666; font-style: italic; text-align: center; font-size: 10px;">Attēls nav pieejams vai nav derīgs</div>';
+                  html += '<div class="no-photo" style="display: none; color: #666; font-style: italic; text-align: center; font-size: 9px;">Attēls nav pieejams vai nav derīgs</div>';
                   html += '</div>';
                 } else {
-                  html += '<div class="no-photo" style="color: #666; font-style: italic; text-align: center; margin-bottom: 15px; font-size: 10px;">Nav pieejams foto</div>';
+                  html += '<div class="no-photo" style="color: #666; font-style: italic; text-align: center; margin-bottom: 15px; font-size: 9px;">Nav pieejams foto</div>';
                 }
                 html += '<h4 style="text-align: center; margin-bottom: 15px; font-size: 12px;">' + animalName + '</h4>';
-                html += '<table style="width: 100%; max-width: 100%; border-collapse: collapse; font-size: 10px; white-space: normal; word-wrap: break-word;"><tbody>';
+                html += '<table style="width: 100%; max-width: 100%; border-collapse: collapse; font-size: 9px !important; white-space: normal; word-break: break-all;"><tbody>';
                 for (let i = 0; i < headers.length; i++) {
                   if (headers[i] === 'Dzīvnieka foto' || headers[i] === 'Dzīvnieka nosaukums latviski') continue;
                   const header = sanitize(headers[i] || '');
                   const value = sanitize(row[i] || '');
                   html += '<tr>';
-                  html += '<th style="text-align: left; border: 1px solid #ddd; padding: 4px; width: 40%; background: #f9f9f9; font-size: 10px; min-width: 60px; max-width: 120px;">' + header + '</th>';
-                  html += '<td style="border: 1px solid #ddd; padding: 4px; font-size: 10px; min-width: 60px; max-width: 120px;">' + value + '</td>';
+                  html += '<th style="text-align: left; border: 1px solid #ddd; padding: 3px; width: 40%; background: #f9f9f9; font-size: 9px !important; min-width: 50px; max-width: 100px;">' + header + '</th>';
+                  html += '<td style="border: 1px solid #ddd; padding: 3px; font-size: 9px !important; min-width: 50px; max-width: 100px;">' + value + '</td>';
                   html += '</tr>';
                 }
                 html += '</tbody></table>';
                 html += '</div>';
-                if (${canEdit}) {
+                if (isWhitelisted(userEmail)) {
                   html += '<button class="btn-edit" onclick="toggleEditForm()" style="margin: 15px auto; background: #2E8B57; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; display: block; font-size: 12px; touch-action: manipulation;">Labot ierakstu</button>';
                   html += '<div id="editForm" class="edit-form" style="margin: 15px; display: none;">';
                   html += '<h4 style="margin-bottom: 10px; font-size: 12px;">Labot ierakstu</h4>';
@@ -874,23 +879,23 @@
                     const header = sanitize(headers[i] || '');
                     const value = sanitize(row[i] || '');
                     html += '<div class="form-group" style="margin-bottom: 12px;">';
-                    html += '<label for="edit-' + i + '" style="display: block; margin-bottom: 5px; font-size: 10px;">' + header + '</label>';
+                    html += '<label for="edit-' + i + '" style="display: block; margin-bottom: 5px; font-size: 9px;">' + header + '</label>';
                     if (header === 'Karantīna') {
-                      html += '<select id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 10px;">';
+                      html += '<select id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px;">';
                       html += '<option value="">Izvēlieties statusu</option>';
                       html += '<option value="Jā"' + (value === 'Jā' ? ' selected' : '') + '>Jā</option>';
                       html += '<option value="Nē"' + (value === 'Nē' ? ' selected' : '') + '>Nē</option>';
                       html += '</select>';
                     } else if (header.includes('datums')) {
-                      html += '<input type="date" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 10px;">';
+                      html += '<input type="date" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px;">';
                     } else if (header === 'Dzīvnieku skaits') {
-                      html += '<input type="number" id="edit-' + i + '" name="' + header + '" value="' + value + '" min="1" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 10px;">';
+                      html += '<input type="number" id="edit-' + i + '" name="' + header + '" value="' + value + '" min="1" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px;">';
                     } else if (header === 'Ārstēšana' || header === 'Piezīmes') {
-                      html += '<textarea id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-size: 10px;" rows="3">' + value + '</textarea>';
+                      html += '<textarea id="edit-' + i + '" name="' + header + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-size: 9px;" rows="3">' + value + '</textarea>';
                     } else if (header === 'Dzīvnieka foto') {
-                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 10px;" placeholder="Ievadiet attēla URL">';
+                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px;" placeholder="Ievadiet attēla URL">';
                     } else {
-                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 10px;">';
+                      html += '<input type="text" id="edit-' + i + '" name="' + header + '" value="' + value + '" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px;">';
                     }
                     html += '</div>';
                   }
@@ -899,12 +904,12 @@
                   html += '</form>';
                   html += '</div>';
                 }
-                content.innerHTML = '<span id="closeFullView" onclick="closeFullView()" style="position: fixed; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #2E8B57; padding: 8px; touch-action: manipulation;">&times;</span>' + html;
+                content.innerHTML = '<span id="closeFullView" onclick="closeFullView()" style="position: fixed; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #2E8B57; padding: 8px; touch-action: manipulation; z-index: 2600;">&times;</span>' + html;
                 modal.style.display = 'block';
                 console.log('[iframe] Modal content set successfully');
               } catch (e) {
                 console.error('[iframe] Error in openFullView: ' + e.message);
-                document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 10px; text-align: center;">Kļūda atverot detalizēto skatu: ' + e.message + '</div>';
+                document.querySelector('.content').innerHTML += '<div class="error-message" style="color: red; font-size: 9px; text-align: center;">Kļūda atverot detalizēto skatu: ' + e.message + '</div>';
               }
             };
           `;
