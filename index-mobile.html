@@ -22,16 +22,13 @@
       width: 100%;
       height: 100vh;
       background: rgba(255, 255, 255, 0.9);
-      display: none;
+      display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 3000;
       opacity: 1;
       transition: opacity 0.5s ease-out;
-    }
-    #loadingOverlay.visible {
-      display: flex;
     }
     #loadingOverlay.hidden {
       opacity: 0;
@@ -280,7 +277,7 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-  <div id="loadingOverlay" class="hidden">
+  <div id="loadingOverlay">
     <img src="https://cdn.dribbble.com/users/807926/screenshots/3629667/loadingtwo.gif" alt="Ielādes animācija">
     <p>Ielādējam dzīvnieku datubāzi...</p>
   </div>
@@ -465,7 +462,6 @@
       document.getElementById('errorMessage').textContent = message;
       document.getElementById('loginContainer').classList.remove('hidden');
       document.getElementById('loadingOverlay').classList.add('hidden');
-      document.getElementById('loadingOverlay').style.display = 'none';
     }
 
     function logoutGoogle() {
@@ -476,97 +472,42 @@
       });
     }
 
-    function injectModalTableStyles(iframe, iframeId) {
+    function loadIframeWithRetry(iframe, errorDiv, baseUrl, iframeId) {
       let attempts = 0;
       const maxAttempts = 3;
-      function applyStyles() {
-        try {
-          const doc = iframe.contentDocument || iframe.contentWindow.document;
-          if (!doc) {
-            if (attempts < maxAttempts) {
-              attempts++;
-              logDebug(`Retry ${attempts} for ${iframeId} style injection, waiting 500ms`);
-              setTimeout(applyStyles, 500);
-              return;
-            }
-            throw new Error(`Cannot access iframe document for ${iframeId} after ${maxAttempts} attempts`);
+      function attemptLoad() {
+        iframe.onload = () => {
+          logDebug(`${iframeId} loaded successfully`);
+          if (iframe.contentDocument && iframe.contentDocument.body) {
+            document.getElementById('loadingOverlay').classList.add('hidden');
           }
-          const style = doc.createElement('style');
-          style.textContent = `
-            .table-container, .content, form, div[role="form"] {
-              width: 100% !important;
-              overflow-x: auto;
-              -webkit-overflow-scrolling: touch;
-            }
-            table {
-              width: 100% !important;
-              border-collapse: collapse;
-              font-size: 14px !important;
-              table-layout: fixed !important;
-              display: table;
-            }
-            th, td {
-              border: 1px solid #ddd !important;
-              padding: 4px !important;
-              text-align: left !important;
-              font-size: 14px !important;
-              flex-grow: 1 !important;
-              min-width: 100px !important;
-              position: relative !important;
-              top: auto !important;
-            }
-            th {
-              background: #f9f9f9 !important;
-              font-weight: bold !important;
-            }
-            .scroll-wrapper {
-              height: 100%;
-              overflow-y: auto !important;
-              -webkit-overflow-scrolling: touch;
-              width: 100%;
-            }
-            /* Target header and section tabs to scroll immediately */
-            h1, h2, h3, .section-tabs, nav, .nav {
-              position: relative !important;
-              top: auto !important;
-              width: 100% !important;
-              margin: 0 !important;
-              padding: 10px 0 !important;
-            }
-          `;
-          doc.head.appendChild(style);
-          const body = doc.body;
-          if (body && !body.querySelector('.scroll-wrapper')) {
-            const scrollWrapper = doc.createElement('div');
-            scrollWrapper.className = 'scroll-wrapper';
-            while (body.firstChild) {
-              scrollWrapper.appendChild(body.firstChild);
-            }
-            body.appendChild(scrollWrapper);
+          if (iframeId !== 'appIframe') injectModalTableStyles(iframe, iframeId);
+          errorDiv.style.display = 'none';
+        };
+        iframe.onerror = () => {
+          attempts++;
+          if (attempts < maxAttempts) {
+            logDebug(`Retry ${attempts} for ${iframeId}, waiting 500ms`);
+            setTimeout(attemptLoad, 500);
+          } else {
+            logDebug(`Failed to load ${iframeId} after ${maxAttempts} attempts`);
+            errorDiv.style.display = 'block';
+            errorDiv.innerHTML = `Kļūda: Nevar ielādēt ${iframeId.replace('Iframe', '').toLowerCase()} formu. Lūdzu, atveriet to <a href="#" onclick="window.open('${baseUrl}', '_blank'); window.parent.close${iframeId.replace('Iframe', 'Modal')}();">jaunā cilnē</a>.`;
+            document.getElementById('loadingOverlay').classList.add('hidden');
           }
-          const tables = doc.querySelectorAll('table');
-          logDebug(`Injected table styles into ${iframeId}, found ${tables.length} tables`);
-          tables.forEach(table => {
-            table.style.width = '100% !important';
-            table.style.tableLayout = 'fixed !important';
-            const thElements = table.querySelectorAll('th');
-            thElements.forEach(th => {
-              th.style.flexGrow = '1 !important';
-              th.style.minWidth = '100px !important';
-              th.style.position = 'relative !important';
-              th.style.top = 'auto !important';
-            });
-            const tdElements = table.querySelectorAll('td');
-            tdElements.forEach(td => {
-              td.style.flexGrow = '1 !important';
-              td.style.minWidth = '100px !important';
-            });
-          });
-        } catch (error) {
-          console.error(`[index-mobile.html] Failed to inject table styles into ${iframeId}: ${error.message}`);
-        }
+        };
+        // Check if content is loaded manually
+        const checkLoaded = () => {
+          if (iframe.contentDocument && iframe.contentDocument.body && !document.getElementById('loadingOverlay').classList.contains('hidden')) {
+            logDebug(`${iframeId} content detected, hiding overlay`);
+            document.getElementById('loadingOverlay').classList.add('hidden');
+          } else if (attempts < maxAttempts) {
+            setTimeout(checkLoaded, 500);
+          }
+        };
+        checkLoaded();
       }
-      applyStyles();
+      attemptLoad();
     }
 
     function handleCredentialResponse(response) {
@@ -574,7 +515,6 @@
       if (response.credential) {
         logDebug('Sending ID token to backend');
         document.getElementById('loadingOverlay').style.display = 'flex';
-        document.getElementById('loadingOverlay').classList.remove('hidden');
         document.getElementById('loginContainer').classList.add('hidden');
         fetch('/api/auth/callback', {
           method: 'POST',
@@ -636,7 +576,6 @@
           document.getElementById('appIframe').src = '';
           document.getElementById('loginContainer').classList.remove('hidden');
           document.getElementById('loadingOverlay').classList.add('hidden');
-          document.getElementById('loadingOverlay').style.display = 'none';
           closeDeathReportsModal();
           closeBirthReportsModal();
           closeAcceptanceActsModal();
@@ -653,35 +592,10 @@
         document.getElementById('appIframe').src = '';
         document.getElementById('loginContainer').classList.remove('hidden');
         document.getElementById('loadingOverlay').classList.add('hidden');
-        document.getElementById('loadingOverlay').style.display = 'none';
         closeDeathReportsModal();
         closeBirthReportsModal();
         closeAcceptanceActsModal();
       }
-    }
-
-    function loadIframeWithRetry(iframe, errorDiv, baseUrl, iframeId) {
-      let attempts = 0;
-      const maxAttempts = 3;
-      function attemptLoad() {
-        iframe.onload = () => {
-          logDebug(`${iframeId} loaded successfully`);
-          if (iframeId !== 'appIframe') injectModalTableStyles(iframe, iframeId);
-          errorDiv.style.display = 'none';
-        };
-        iframe.onerror = () => {
-          attempts++;
-          if (attempts < maxAttempts) {
-            logDebug(`Retry ${attempts} for ${iframeId}, waiting 500ms`);
-            setTimeout(attemptLoad, 500);
-          } else {
-            logDebug(`Failed to load ${iframeId} after ${maxAttempts} attempts`);
-            errorDiv.style.display = 'block';
-            errorDiv.innerHTML = `Kļūda: Nevar ielādēt ${iframeId.replace('Iframe', '').toLowerCase()} formu. Lūdzu, atveriet to <a href="#" onclick="window.open('${baseUrl}', '_blank'); window.parent.close${iframeId.replace('Iframe', 'Modal')}();">jaunā cilnē</a>.`;
-          }
-        };
-      }
-      attemptLoad();
     }
 
     window.onload = async () => {
@@ -720,8 +634,6 @@
           userEmail = data.email;
           logDebug('User is authenticated, email: ' + userEmail + ', showing iframe');
           document.getElementById('loginContainer').classList.add('hidden');
-          document.getElementById('loadingOverlay').style.display = 'flex';
-          document.getElementById('loadingOverlay').classList.remove('hidden');
           iframe.src = getIframeUrl(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&section=Zīdītāji`);
           iframe.style.display = 'block';
           loadIframeWithRetry(iframe, document.createElement('div'), APPS_SCRIPT_URL, 'appIframe');
@@ -741,9 +653,6 @@
               document.getElementById('logoutGoogleButton').style.display = 'none';
             }
             document.getElementById('loadingOverlay').classList.add('hidden');
-            setTimeout(() => {
-              document.getElementById('loadingOverlay').style.display = 'none';
-            }, 500);
           };
           iframe.onerror = () => {
             showError('Kļūda ielādējot lietojumprogrammu. Lūdzu, mēģiniet vēlreiz.');
@@ -754,7 +663,6 @@
           document.getElementById('navMenu').classList.remove('visible');
           iframe.style.display = 'none';
           document.getElementById('loadingOverlay').classList.add('hidden');
-          document.getElementById('loadingOverlay').style.display = 'none';
         }
       } catch (error) {
         showError('Kļūda pārbaudot autentifikāciju: ' + error.message);
