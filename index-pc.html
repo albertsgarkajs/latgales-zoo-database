@@ -98,6 +98,18 @@
     .btn-retry:hover {
       background-color: #006400;
     }
+    #hamburgerMenu {
+      position: fixed;
+      top: 40px;
+      right: 20px;
+      z-index: 1002;
+      cursor: pointer;
+      display: none;
+    }
+    #hamburgerMenu img {
+      width: 30px;
+      height: 30px;
+    }
     #parentNav {
       position: fixed;
       top: 40px;
@@ -158,7 +170,7 @@
       font-style: italic;
       margin-bottom: 20px;
     }
-    #deathReportsModal, #birthReportsModal, #acceptanceActsModal, #fullViewModal {
+    #deathReportsModal, #birthReportsModal, #acceptanceActsModal {
       display: none;
       position: fixed;
       top: 0;
@@ -170,7 +182,7 @@
       justify-content: center;
       align-items: center;
     }
-    #deathReportsModalContent, #birthReportsModalContent, #acceptanceActsModalContent, #fullViewContent {
+    #deathReportsModalContent, #birthReportsModalContent, #acceptanceActsModalContent {
       background: #ffffff;
       border-radius: 8px;
       width: 90%;
@@ -185,7 +197,7 @@
       height: 100%;
       border: none;
     }
-    #closeDeathReportsModal, #closeBirthReportsModal, #closeAcceptanceActsModal, #closeFullView {
+    #closeDeathReportsModal, #closeBirthReportsModal, #closeAcceptanceActsModal {
       position: absolute;
       top: 10px;
       right: 15px;
@@ -231,6 +243,9 @@
       </div>
     </div>
   </div>
+  <div id="hamburgerMenu">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Hamburger_icon.svg/32px-Hamburger_icon.svg.png" alt="Menu">
+  </div>
   <div id="parentNav">
     <button id="deathReportsButton" onclick="openDeathReports()">Nāves ziņojumi</button>
     <button id="birthReportsButton" onclick="openBirthReports()">Dzimšanas ziņojumi</button>
@@ -239,31 +254,30 @@
   </div>
   <div id="deathReportsModal">
     <div id="deathReportsModalContent">
-      <span id="closeDeathReportsModal" onclick="closeModal('deathReportsModal')">&times;</span>
-      <div id="deathReportsError">Kļūda: Nevar ielādēt nāves ziņojumu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(DEATH_REPORTS_URL, '_blank'); closeModal('deathReportsModal');">jaunā cilnē</a>.</div>
+      <span id="closeDeathReportsModal" onclick="closeDeathReportsModal()">&times;</span>
+      <div id="deathReportsError">Kļūda: Nevar ielādēt nāves ziņojumu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(DEATH_REPORTS_URL, '_blank'); closeDeathReportsModal();">jaunā cilnē</a>.</div>
       <iframe id="deathReportsIframe" src="" title="Nāves ziņojumu forma"></iframe>
     </div>
   </div>
   <div id="birthReportsModal">
     <div id="birthReportsModalContent">
-      <span id="closeBirthReportsModal" onclick="closeModal('birthReportsModal')">&times;</span>
-      <div id="birthReportsError">Kļūda: Nevar ielādēt dzimšanas ziņojumu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(BIRTH_REPORTS_URL, '_blank'); closeModal('birthReportsModal');">jaunā cilnē</a>.</div>
+      <span id="closeBirthReportsModal" onclick="closeBirthReportsModal()">&times;</span>
+      <div id="birthReportsError">Kļūda: Nevar ielādēt dzimšanas ziņojumu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(BIRTH_REPORTS_URL, '_blank'); closeBirthReportsModal();">jaunā cilnē</a>.</div>
       <iframe id="birthReportsIframe" src="" title="Dzimšanas ziņojumu forma"></iframe>
     </div>
   </div>
   <div id="acceptanceActsModal">
     <div id="acceptanceActsModalContent">
-      <span id="closeAcceptanceActsModal" onclick="closeModal('acceptanceActsModal')">&times;</span>
-      <div id="acceptanceActsError">Kļūda: Nevar ielādēt pieņemšanas aktu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(ACCEPTANCE_ACTS_URL, '_blank'); closeModal('acceptanceActsModal');">jaunā cilnē</a>.</div>
+      <span id="closeAcceptanceActsModal" onclick="closeAcceptanceActsModal()">&times;</span>
+      <div id="acceptanceActsError">Kļūda: Nevar ielādēt pieņemšanas aktu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(ACCEPTANCE_ACTS_URL, '_blank'); closeAcceptanceActsModal();">jaunā cilnē</a>.</div>
       <iframe id="acceptanceActsIframe" src="" title="Pieņemšanas aktu forma"></iframe>
     </div>
   </div>
-  <div id="fullViewModal">
-    <div id="fullViewContent">
-      <span id="closeFullView" onclick="closeModal('fullViewModal')">&times;</span>
-    </div>
-  </div>
-  <iframe id="appIframe" src="" title="Latgales Zoodārza Dzīvnieku Datubāze"></iframe>
+  <iframe
+    id="appIframe"
+    src=""
+    title="Latgales Zoodārza Dzīvnieku Datubāze"
+  ></iframe>
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/a/*/macros/s/AKfycby6CabeU4XKY5WNiLFrd_IqPSugfeee8hQbc6elAcqIgqK3IWTc5AgW-8VqOF6Z1hSiWA/exec';
     const DEATH_REPORTS_URL = 'https://script.google.com/macros/s/AKfycbzffFO5FKMM0JNYMNabRQOlrFQhuiFk_Ax7hUruJh9fw5Nl-cvSvaWUVNmLhLyVEBrTQw/exec';
@@ -271,54 +285,111 @@
     const ACCEPTANCE_ACTS_URL = 'https://script.google.com/macros/s/AKfycby2t8wLmy6c1K9NMFeXyv0zEil9G7swr6gDRnkiVSAWtXdH4n6AdyTHvEod_zJ5k45Wqw/exec';
     const WHITELISTED_EMAILS = ['albertsgarkajs@gmail.com', 'office.client12062025@gmail.com'];
     let userEmail = '';
-    let isModalOpen = false;
-
     function isWhitelisted(email) {
       return WHITELISTED_EMAILS.includes(email.toLowerCase());
     }
-
-    function openModal(modalId, iframeId, url) {
+    function openDeathReports() {
       if (!isWhitelisted(userEmail)) {
         showError('Nav piešķirtas izmantošanas tiesības, sazinieties ar administratoru e-pasts: albertsgarkajs@gmail.com');
         return;
       }
-      logDebug(`Opening ${modalId} modal`);
+      logDebug('Opening Death Reports modal');
       document.getElementById('parentNav').style.display = 'none';
-      isModalOpen = true;
-      const modal = document.getElementById(modalId);
-      const iframe = document.getElementById(iframeId);
-      const errorDiv = document.getElementById(modalId.replace('Modal', 'Error'));
+      logDebug('Hid parentNav before opening Death Reports modal');
+      const modal = document.getElementById('deathReportsModal');
+      const iframe = document.getElementById('deathReportsIframe');
+      const errorDiv = document.getElementById('deathReportsError');
       errorDiv.style.display = 'none';
-      iframe.src = url;
+      iframe.src = DEATH_REPORTS_URL;
       modal.style.display = 'flex';
-      iframe.onload = () => logDebug(`${modalId} iframe loaded successfully`);
+      iframe.onload = () => {
+        logDebug('Death Reports iframe loaded successfully');
+      };
       iframe.onerror = () => {
-        logDebug(`Error loading ${modalId} iframe`);
+        logDebug('Error loading Death Reports iframe');
         errorDiv.style.display = 'block';
       };
     }
-
-    function closeModal(modalId) {
-      logDebug(`Closing ${modalId} modal`);
-      const modal = document.getElementById(modalId);
-      const iframe = document.getElementById(modalId.replace('Modal', 'Iframe') || 'fullViewContent');
+    function closeDeathReportsModal() {
+      logDebug('Closing Death Reports modal');
+      const modal = document.getElementById('deathReportsModal');
+      const iframe = document.getElementById('deathReportsIframe');
       modal.style.display = 'none';
-      if (iframe.tagName === 'IFRAME') iframe.src = '';
-      isModalOpen = document.querySelectorAll('#deathReportsModal, #birthReportsModal, #acceptanceActsModal, #fullViewModal').some(m => m.style.display === 'flex');
-      if (!isModalOpen && isWhitelisted(userEmail)) {
+      iframe.src = '';
+      if (isWhitelisted(userEmail)) {
         document.getElementById('parentNav').style.display = 'flex';
-        logDebug('Restored parentNav for whitelisted user after closing all modals');
+        logDebug('Restored parentNav for whitelisted user after closing Death Reports modal');
       }
     }
-
-    function openDeathReports() { openModal('deathReportsModal', 'deathReportsIframe', DEATH_REPORTS_URL); }
-    function openBirthReports() { openModal('birthReportsModal', 'birthReportsIframe', BIRTH_REPORTS_URL); }
-    function openAcceptanceActs() { openModal('acceptanceActsModal', 'acceptanceActsIframe', ACCEPTANCE_ACTS_URL); }
-
+    function openBirthReports() {
+      if (!isWhitelisted(userEmail)) {
+        showError('Nav piešķirtas izmantošanas tiesības, sazinieties ar administratoru e-pasts: albertsgarkajs@gmail.com');
+        return;
+      }
+      logDebug('Opening Birth Reports modal');
+      document.getElementById('parentNav').style.display = 'none';
+      logDebug('Hid parentNav before opening Birth Reports modal');
+      const modal = document.getElementById('birthReportsModal');
+      const iframe = document.getElementById('birthReportsIframe');
+      const errorDiv = document.getElementById('birthReportsError');
+      errorDiv.style.display = 'none';
+      iframe.src = BIRTH_REPORTS_URL;
+      modal.style.display = 'flex';
+      iframe.onload = () => {
+        logDebug('Birth Reports iframe loaded successfully');
+      };
+      iframe.onerror = () => {
+        logDebug('Error loading Birth Reports iframe');
+        errorDiv.style.display = 'block';
+      };
+    }
+    function closeBirthReportsModal() {
+      logDebug('Closing Birth Reports modal');
+      const modal = document.getElementById('birthReportsModal');
+      const iframe = document.getElementById('birthReportsIframe');
+      modal.style.display = 'none';
+      iframe.src = '';
+      if (isWhitelisted(userEmail)) {
+        document.getElementById('parentNav').style.display = 'flex';
+        logDebug('Restored parentNav for whitelisted user after closing Birth Reports modal');
+      }
+    }
+    function openAcceptanceActs() {
+      if (!isWhitelisted(userEmail)) {
+        showError('Nav piešķirtas izmantošanas tiesības, sazinieties ar administratoru e-pasts: albertsgarkajs@gmail.com');
+        return;
+      }
+      logDebug('Opening Acceptance Acts modal');
+      document.getElementById('parentNav').style.display = 'none';
+      logDebug('Hid parentNav before opening Acceptance Acts modal');
+      const modal = document.getElementById('acceptanceActsModal');
+      const iframe = document.getElementById('acceptanceActsIframe');
+      const errorDiv = document.getElementById('acceptanceActsError');
+      errorDiv.style.display = 'none';
+      iframe.src = ACCEPTANCE_ACTS_URL;
+      modal.style.display = 'flex';
+      iframe.onload = () => {
+        logDebug('Acceptance Acts iframe loaded successfully');
+      };
+      iframe.onerror = () => {
+        logDebug('Error loading Acceptance Acts iframe');
+        errorDiv.style.display = 'block';
+      };
+    }
+    function closeAcceptanceActsModal() {
+      logDebug('Closing Acceptance Acts modal');
+      const modal = document.getElementById('acceptanceActsModal');
+      const iframe = document.getElementById('acceptanceActsIframe');
+      modal.style.display = 'none';
+      iframe.src = '';
+      if (isWhitelisted(userEmail)) {
+        document.getElementById('parentNav').style.display = 'flex';
+        logDebug('Restored parentNav for whitelisted user after closing Acceptance Acts modal');
+      }
+    }
     function logDebug(message) {
       console.log('[index-pc.html] ' + message);
     }
-
     function showError(message) {
       console.error('[index-pc.html] ' + message);
       document.getElementById('errorMessage').textContent = message;
@@ -326,7 +397,6 @@
       document.getElementById('loadingOverlay').classList.add('hidden');
       document.getElementById('loadingOverlay').style.display = 'none';
     }
-
     function handleCredentialResponse(response) {
       logDebug('Google OAuth initiated: ' + JSON.stringify(response));
       if (response.credential) {
@@ -367,7 +437,6 @@
         showError('Kļūda: Nav derīgu Google autentifikācijas datu');
       }
     }
-
     async function signOut() {
       try {
         logDebug('Initiating server-side sign-out');
@@ -395,10 +464,9 @@
           document.getElementById('loginContainer').classList.remove('hidden');
           document.getElementById('loadingOverlay').classList.add('hidden');
           document.getElementById('loadingOverlay').style.display = 'none';
-          closeModal('deathReportsModal');
-          closeModal('birthReportsModal');
-          closeModal('acceptanceActsModal');
-          closeModal('fullViewModal');
+          closeDeathReportsModal();
+          closeBirthReportsModal();
+          closeAcceptanceActsModal();
         } else {
           throw new Error('Sign-out failed: ' + (result.error || 'Unknown error'));
         }
@@ -413,13 +481,11 @@
         document.getElementById('loginContainer').classList.remove('hidden');
         document.getElementById('loadingOverlay').classList.add('hidden');
         document.getElementById('loadingOverlay').style.display = 'none';
-        closeModal('deathReportsModal');
-        closeModal('birthReportsModal');
-        closeModal('acceptanceActsModal');
-        closeModal('fullViewModal');
+        closeDeathReportsModal();
+        closeBirthReportsModal();
+        closeAcceptanceActsModal();
       }
     }
-
     function injectButtons(iframe) {
       try {
         const doc = iframe.contentDocument || iframe.contentWindow.document;
@@ -764,17 +830,16 @@
             logDebug('Iframe loaded successfully');
             injectButtons(iframe);
             if (isWhitelisted(userEmail)) {
+              document.getElementById('hamburgerMenu').style.display = 'block';
               document.getElementById('parentNav').style.display = 'flex';
-              document.getElementById('deathReportsButton').style.display = 'inline-block';
-              document.getElementById('birthReportsButton').style.display = 'inline-block';
-              document.getElementById('acceptanceActsButton').style.display = 'inline-block';
-              logDebug('Showing parentNav with all buttons for whitelisted user');
+              logDebug('Showing hamburgerMenu and parentNav with all buttons for whitelisted user');
             } else {
-              document.getElementById('parentNav').style.display = 'flex';
+              document.getElementById('hamburgerMenu').style.display = 'block';
               document.getElementById('deathReportsButton').style.display = 'none';
               document.getElementById('birthReportsButton').style.display = 'none';
               document.getElementById('acceptanceActsButton').style.display = 'none';
-              logDebug('Showing parentNav with only Iziet button for non-whitelisted user');
+              document.getElementById('parentNav').style.display = 'flex';
+              logDebug('Showing hamburgerMenu and parentNav with only Iziet button for non-whitelisted user');
             }
             document.getElementById('loadingOverlay').classList.add('hidden');
             setTimeout(() => {
