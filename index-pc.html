@@ -902,6 +902,17 @@
       } catch (error) {
         showError('Kļūda pārbaudot autentifikāciju: ' + error.message);
       }
+
+      // Add click-outside-to-collapse functionality
+      document.addEventListener('click', (event) => {
+        const navContainer = document.getElementById('navContainer');
+        const hamburgerMenu = document.getElementById('hamburgerMenu');
+        if (navVisible && !navContainer.contains(event.target) && !hamburgerMenu.contains(event.target)) {
+          navVisible = false;
+          navContainer.className = '';
+          logDebug('Collapsed navContainer due to click outside');
+        }
+      });
     };
   </script>
 </body>
