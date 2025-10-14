@@ -86,7 +86,7 @@
       display: none;
       margin-top: 60px;
       flex-grow: 1;
-      overflow: auto;
+      overflow-x: auto;
       box-sizing: border-box;
       sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"
     }
@@ -132,7 +132,7 @@
     #navMenu.visible {
       display: flex;
     }
-    #deathReportsButton, #birthReportsButton, #acceptanceActsButton, #signOutButton, #logoutGoogleButton {
+    #deathReportsButton, #birthReportsButton, #acceptanceActsButton, #logoutGoogleButton {
       background: none;
       border: none;
       color: white;
@@ -146,10 +146,10 @@
       border-radius: 4px;
       touch-action: manipulation;
     }
-    #deathReportsButton:hover, #birthReportsButton:hover, #acceptanceActsButton:hover, #signOutButton:hover, #logoutGoogleButton:hover {
+    #deathReportsButton:hover, #birthReportsButton:hover, #acceptanceActsButton:hover, #logoutGoogleButton:hover {
       background-color: #32CD32;
     }
-    #deathReportsButton:active, #birthReportsButton:active, #acceptanceActsButton:active, #signOutButton:active, #logoutGoogleButton:active {
+    #deathReportsButton:active, #birthReportsButton:active, #acceptanceActsButton:active, #logoutGoogleButton:active {
       background-color: #2E8B57;
     }
     .footer-text {
@@ -311,8 +311,7 @@
     <button id="deathReportsButton" onclick="openDeathReports()">Nāves ziņojumi</button>
     <button id="birthReportsButton" onclick="openBirthReports()">Dzimšanas ziņojumi</button>
     <button id="acceptanceActsButton" onclick="openAcceptanceActs()">Pieņemšanas akti</button>
-    <button id="signOutButton" onclick="signOut()">Iziet</button>
-    <button id="logoutGoogleButton" onclick="logoutGoogle()">Log Out Google</button>
+    <button id="logoutGoogleButton" onclick="logoutGoogle()">Iziet</button>
   </div>
   <div id="deathReportsModal">
     <div id="deathReportsModalContent">
@@ -386,7 +385,7 @@
 
     function openDeathReports() {
       if (!isWhitelisted(userEmail)) {
-        showError('Nav piešķirtas izmantošanas tiesības, sazinieties ar administratoru e-pasts: albertsgarkajs@gmail.com');
+        showErrorOnSpot('Nav piešķirtas izmantošanas tiesības, sazinieties ar administratoru e-pasts: <a href="mailto:albertsgarkajs@gmail.com">albertsgarkajs@gmail.com</a>');
         return;
       }
       const navMenu = document.getElementById('navMenu');
@@ -409,7 +408,7 @@
 
     function openBirthReports() {
       if (!isWhitelisted(userEmail)) {
-        showError('Nav piešķirtas izmantošanas tiesības, sazinieties ar administratoru e-pasts: albertsgarkajs@gmail.com');
+        showErrorOnSpot('Nav piešķirtas izmantošanas tiesības, sazinieties ar administratoru e-pasts: <a href="mailto:albertsgarkajs@gmail.com">albertsgarkajs@gmail.com</a>');
         return;
       }
       const navMenu = document.getElementById('navMenu');
@@ -432,7 +431,7 @@
 
     function openAcceptanceActs() {
       if (!isWhitelisted(userEmail)) {
-        showError('Nav piešķirtas izmantošanas tiesības, sazinieties ar administratoru e-pasts: albertsgarkajs@gmail.com');
+        showErrorOnSpot('Nav piešķirtas izmantošanas tiesības, sazinieties ar administratoru e-pasts: <a href="mailto:albertsgarkajs@gmail.com">albertsgarkajs@gmail.com</a>');
         return;
       }
       const navMenu = document.getElementById('navMenu');
@@ -459,9 +458,24 @@
 
     function showError(message) {
       console.error('[index-mobile.html] ' + message);
-      document.getElementById('errorMessage').textContent = message;
+      document.getElementById('errorMessage').innerHTML = message;
       document.getElementById('loginContainer').classList.remove('hidden');
       document.getElementById('loadingOverlay').classList.add('hidden');
+    }
+
+    function showErrorOnSpot(message) {
+      console.error('[index-mobile.html] ' + message);
+      const errorDiv = document.createElement('div');
+      errorDiv.id = 'tempError';
+      errorDiv.style.color = 'red';
+      errorDiv.style.fontSize = '12px';
+      errorDiv.style.textAlign = 'center';
+      errorDiv.style.padding = '15px';
+      errorDiv.innerHTML = message;
+      document.body.appendChild(errorDiv);
+      setTimeout(() => {
+        errorDiv.remove();
+      }, 5000); // Remove after 5 seconds
     }
 
     function logoutGoogle() {
@@ -475,11 +489,19 @@
     function loadIframeWithRetry(iframe, errorDiv, baseUrl, iframeId) {
       let attempts = 0;
       const maxAttempts = 3;
+      const maxLoadTime = 10000; // 10 seconds timeout
+      let loadTimeout;
+
       function attemptLoad() {
         iframe.onload = () => {
           logDebug(`${iframeId} loaded successfully`);
+          clearTimeout(loadTimeout);
           if (iframe.contentDocument && iframe.contentDocument.body) {
-            document.getElementById('loadingOverlay').classList.add('hidden');
+            if (iframeId === 'appIframe') {
+              checkDataLoaded(iframe);
+            } else {
+              document.getElementById('loadingOverlay').classList.add('hidden');
+            }
           }
           if (iframeId !== 'appIframe') injectModalTableStyles(iframe, iframeId);
           errorDiv.style.display = 'none';
@@ -496,17 +518,34 @@
             document.getElementById('loadingOverlay').classList.add('hidden');
           }
         };
-        // Check if content is loaded manually
-        const checkLoaded = () => {
-          if (iframe.contentDocument && iframe.contentDocument.body && !document.getElementById('loadingOverlay').classList.contains('hidden')) {
-            logDebug(`${iframeId} content detected, hiding overlay`);
+        loadTimeout = setTimeout(() => {
+          if (!document.getElementById('loadingOverlay').classList.contains('hidden')) {
+            logDebug(`${iframeId} load timed out after ${maxLoadTime}ms`);
             document.getElementById('loadingOverlay').classList.add('hidden');
-          } else if (attempts < maxAttempts) {
-            setTimeout(checkLoaded, 500);
           }
-        };
-        checkLoaded();
+        }, maxLoadTime);
       }
+
+      function checkDataLoaded(iframe) {
+        let checkAttempts = 0;
+        const maxCheckAttempts = 20; // Check up to 10 seconds (500ms * 20)
+        const checkInterval = setInterval(() => {
+          if (iframe.contentDocument && iframe.contentDocument.body) {
+            const tables = iframe.contentDocument.getElementsByTagName('table');
+            if (tables.length > 0 && tables[0].rows.length > 0) {
+              logDebug('Data loaded in appIframe, hiding overlay');
+              clearInterval(checkInterval);
+              document.getElementById('loadingOverlay').classList.add('hidden');
+            } else if (checkAttempts >= maxCheckAttempts) {
+              logDebug('Data check timed out, hiding overlay');
+              clearInterval(checkInterval);
+              document.getElementById('loadingOverlay').classList.add('hidden');
+            }
+          }
+          checkAttempts++;
+        }, 500);
+      }
+
       attemptLoad();
     }
 
@@ -652,7 +691,6 @@
               document.getElementById('acceptanceActsButton').style.display = 'none';
               document.getElementById('logoutGoogleButton').style.display = 'none';
             }
-            document.getElementById('loadingOverlay').classList.add('hidden');
           };
           iframe.onerror = () => {
             showError('Kļūda ielādējot lietojumprogrammu. Lūdzu, mēģiniet vēlreiz.');
