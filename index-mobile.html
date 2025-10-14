@@ -319,21 +319,21 @@
   <div id="deathReportsModal">
     <div id="deathReportsModalContent">
       <span id="closeDeathReportsModal" onclick="closeDeathReportsModal()">&times;</span>
-      <div id="deathReportsError">Kļūda: Nevar ielādēt nāves ziņojumu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(DEATH_REPORTS_URL, '_blank'); closeDeathReportsModal();">jaunā cilnē</a>.</div>
+      <div id="deathReportsError">Kļūda: Nevar ielādēt nāves ziņojumu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(DEATH_REPORTS_URL, '_blank'); closeDeathReportsModal();">jaunā cilnē</a> vai atsvaidziniet lapu.</div>
       <iframe id="deathReportsIframe" src="" title="Nāves ziņojumu forma" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"></iframe>
     </div>
   </div>
   <div id="birthReportsModal">
     <div id="birthReportsModalContent">
       <span id="closeBirthReportsModal" onclick="closeBirthReportsModal()">&times;</span>
-      <div id="birthReportsError">Kļūda: Nevar ielādēt dzimšanas ziņojumu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(BIRTH_REPORTS_URL, '_blank'); closeBirthReportsModal();">jaunā cilnē</a>.</div>
+      <div id="birthReportsError">Kļūda: Nevar ielādēt dzimšanas ziņojumu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(BIRTH_REPORTS_URL, '_blank'); closeBirthReportsModal();">jaunā cilnē</a> vai atsvaidziniet lapu.</div>
       <iframe id="birthReportsIframe" src="" title="Dzimšanas ziņojumu forma" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"></iframe>
     </div>
   </div>
   <div id="acceptanceActsModal">
     <div id="acceptanceActsModalContent">
       <span id="closeAcceptanceActsModal" onclick="closeAcceptanceActsModal()">&times;</span>
-      <div id="acceptanceActsError">Kļūda: Nevar ielādēt pieņemšanas aktu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(ACCEPTANCE_ACTS_URL, '_blank'); closeAcceptanceActsModal();">jaunā cilnē</a>.</div>
+      <div id="acceptanceActsError">Kļūda: Nevar ielādēt pieņemšanas aktu formu. Lūdzu, atveriet to <a href="#" onclick="window.open(ACCEPTANCE_ACTS_URL, '_blank'); closeAcceptanceActsModal();">jaunā cilnē</a> vai atsvaidziniet lapu.</div>
       <iframe id="acceptanceActsIframe" src="" title="Pieņemšanas aktu forma" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"></iframe>
     </div>
   </div>
@@ -515,17 +515,18 @@
               height: 100%;
               overflow-y: auto !important;
               -webkit-overflow-scrolling: touch;
+              width: 100%;
             }
           `;
           doc.head.appendChild(style);
-          const content = doc.querySelector('.content');
-          if (content) {
+          const body = doc.body;
+          if (body) {
             const scrollWrapper = doc.createElement('div');
             scrollWrapper.className = 'scroll-wrapper';
-            while (content.firstChild) {
-              scrollWrapper.appendChild(content.firstChild);
+            while (body.firstChild) {
+              scrollWrapper.appendChild(body.firstChild);
             }
-            content.appendChild(scrollWrapper);
+            body.appendChild(scrollWrapper);
           }
           const tables = doc.querySelectorAll('table');
           logDebug(`Injected table styles into ${iframeId}, found ${tables.length} tables`);
@@ -559,9 +560,13 @@
         document.getElementById('loadingOverlay').style.display = 'flex';
         document.getElementById('loadingOverlay').classList.remove('hidden');
         document.getElementById('loginContainer').classList.add('hidden');
-        // Reset session state to avoid multi-account issues
+        // Force logout of all Google sessions and reset local state
         localStorage.clear();
         sessionStorage.clear();
+        google.accounts.id.disableAutoSelect();
+        google.accounts.id.revoke(null, () => {
+          logDebug('Revoked previous Google sessions');
+        });
         fetch('/api/auth/callback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -626,6 +631,7 @@
           closeDeathReportsModal();
           closeBirthReportsModal();
           closeAcceptanceActsModal();
+          google.accounts.id.disableAutoSelect();
         } else {
           throw new Error('Sign-out failed: ' + (result.error || 'Unknown error'));
         }
@@ -643,6 +649,7 @@
         closeDeathReportsModal();
         closeBirthReportsModal();
         closeAcceptanceActsModal();
+        google.accounts.id.disableAutoSelect();
       }
     }
 
@@ -760,6 +767,7 @@
               overflow-y: auto !important;
               -webkit-overflow-scrolling: touch;
               width: 100%;
+              touch-action: pan-y;
             }
             /* Ensure all elements scroll from the top */
             h1, h2, h3, .section-tabs, nav, .nav {
@@ -771,15 +779,15 @@
             }
           `;
           doc.head.appendChild(style);
-          // Inject scroll wrapper around content
-          const content = doc.querySelector('.content');
-          if (content) {
+          // Wrap entire body in scroll wrapper
+          const body = doc.body;
+          if (body && !body.querySelector('.scroll-wrapper')) {
             const scrollWrapper = doc.createElement('div');
             scrollWrapper.className = 'scroll-wrapper';
-            while (content.firstChild) {
-              scrollWrapper.appendChild(content.firstChild);
+            while (body.firstChild) {
+              scrollWrapper.appendChild(body.firstChild);
             }
-            content.appendChild(scrollWrapper);
+            body.appendChild(scrollWrapper);
           }
           const tables = doc.querySelectorAll('table');
           logDebug('Injected table styles into main iframe, found ' + tables.length + ' tables');
@@ -930,7 +938,7 @@
           } else {
             logDebug(`Failed to load ${iframeId} after ${maxAttempts} attempts`);
             errorDiv.style.display = 'block';
-            errorDiv.innerHTML = `Kļūda: Nevar ielādēt ${iframeId.replace('Iframe', '').toLowerCase()} formu. Lūdzu, atveriet to <a href="#" onclick="window.open('${baseUrl}', '_blank'); window.parent.close${iframeId.replace('Iframe', 'Modal')}();">jaunā cilnē</a>.`;
+            errorDiv.innerHTML = `Kļūda: Nevar ielādēt ${iframeId.replace('Iframe', '').toLowerCase()} formu. Lūdzu, atveriet to <a href="#" onclick="window.open('${baseUrl}', '_blank'); window.parent.close${iframeId.replace('Iframe', 'Modal')}();">jaunā cilnē</a> vai atsvaidziniet lapu.`;
           }
         };
       }
