@@ -84,12 +84,12 @@
     }
     #appIframe {
       width: 100%;
-      height: auto;
+      min-height: 400px; /* Restore minimum height for scrolling */
       border: none;
       display: none;
       margin-top: 60px;
       flex-grow: 1;
-      overflow-x: auto;
+      overflow: auto; /* Enable both x and y scrolling */
       box-sizing: border-box;
       sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"
     }
@@ -488,6 +488,7 @@
               width: 100% !important;
               overflow-x: auto;
               -webkit-overflow-scrolling: touch;
+              overflow-y: auto !important; /* Ensure scrolling */
             }
             table {
               width: 100% !important;
@@ -503,12 +504,16 @@
               font-size: 14px !important;
               flex-grow: 1 !important;
               min-width: 100px !important;
+              position: relative !important; /* Ensure th scrolls */
+              top: auto !important;
             }
             th {
               background: #f9f9f9 !important;
               font-weight: bold !important;
-              position: relative !important; /* Ensure header scrolls */
-              top: auto !important;
+            }
+            .content {
+              height: auto !important; /* Allow content to dictate height */
+              overflow-y: auto !important; /* Ensure vertical scrolling */
             }
           `;
           doc.head.appendChild(style);
@@ -557,6 +562,8 @@
               const data = JSON.parse(responseText);
               userEmail = data.email;
               logDebug('OAuth callback successful, email: ' + userEmail);
+              // Reset localStorage to mimic incognito
+              localStorage.clear();
               const lastReload = localStorage.getItem('lastReload');
               const now = Date.now();
               if (!lastReload || now - parseInt(lastReload) > 1000) {
@@ -715,7 +722,7 @@
               width: 100% !important;
               overflow-x: auto;
               -webkit-overflow-scrolling: touch;
-              overflow-y: auto !important; /* Ensure immediate vertical scrolling */
+              overflow-y: auto !important; /* Ensure vertical scrolling */
               height: auto !important; /* Allow content to dictate height */
             }
             table {
@@ -747,8 +754,23 @@
               margin: 0 !important;
               padding: 10px 0 !important;
             }
+            .scroll-wrapper {
+              height: 100%;
+              overflow-y: auto !important; /* Wrap content in scrollable container */
+              -webkit-overflow-scrolling: touch;
+            }
           `;
           doc.head.appendChild(style);
+          // Inject scroll wrapper around content
+          const content = doc.querySelector('.content');
+          if (content) {
+            const scrollWrapper = doc.createElement('div');
+            scrollWrapper.className = 'scroll-wrapper';
+            while (content.firstChild) {
+              scrollWrapper.appendChild(content.firstChild);
+            }
+            content.appendChild(scrollWrapper);
+          }
           const tables = doc.querySelectorAll('table');
           logDebug('Injected table styles into main iframe, found ' + tables.length + ' tables');
           tables.forEach(table => {
