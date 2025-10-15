@@ -1,1 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <title>Visitor Counter</title>
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+      }
+      .iframe-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        max-width: 800px; /* Adjust to match button container width */
+        margin-bottom: 20px;
+      }
+      iframe {
+        width: 100%;
+        height: 600px; /* Adjust height to fit content */
+        border: none;
+        border-radius: 10px;
+        background-color: #f0f0f0;
+      }
+      #report {
+        background-color: #666;
+        height: 50px;
+        font-size: 18px;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.2s;
+        position: absolute;
+        bottom: 20px;
+        width: 200px;
+      }
+      #report:hover {
+        transform: scale(1.05);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="iframe-container">
+      <iframe src="https://script.google.com/macros/s/AKfycbwv6OQSdXxi4huhYuN7gm3yLHdtCL6LwxhSoo2Ev5BID2IMEugwB7-qVZklgqX6sl9ZQQ/exec"></iframe>
+    </div>
+    <button id="report" onclick="generateReport()">Izveidot Nedēļas Atskaiti</button>
 
+    <script>
+      function generateReport() {
+        // Access the iframe's content window to call the generateReport function
+        var iframe = document.querySelector('iframe');
+        var statusElement = iframe.contentWindow.document.getElementById('status');
+        statusElement.innerText = 'Apstrāde...';
+        iframe.contentWindow.google.script.run
+          .withSuccessHandler(function(result) {
+            statusElement.className = result.status === 'success' ? '' : 'error';
+            statusElement.innerText = result.message;
+          })
+          .withFailureHandler(function(error) {
+            statusElement.className = 'error';
+            statusElement.innerText = 'Kļūda: ' + error.message;
+          })
+          .generateWeeklyReport();
+      }
+    </script>
+  </body>
+</html>
