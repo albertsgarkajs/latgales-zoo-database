@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="lv">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Quest: Emoji Adventure</title>
+    <title>Matemātikas Dabas Piedzīvojums</title>
     <style>
         body {
             font-family: 'Comic Sans MS', Arial, sans-serif;
@@ -12,7 +12,7 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background: linear-gradient(to bottom, #87ceeb, #f0f8ff);
+            background: linear-gradient(to bottom, #228B22, #98FB98);
             text-align: center;
         }
         #game-container {
@@ -20,13 +20,16 @@
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-            max-width: 500px;
+            max-width: 600px;
             width: 100%;
         }
         h1 {
-            color: #ff4500;
+            color: #228B22;
             font-size: 28px;
             margin-bottom: 10px;
+        }
+        #player-setup {
+            margin-bottom: 20px;
         }
         #board {
             display: flex;
@@ -34,24 +37,25 @@
             gap: 5px;
             margin: 20px 0;
             padding: 10px;
-            background-color: #f0fff0;
+            background-color: #F0FFF0;
             border-radius: 10px;
         }
         .board-space {
             width: 40px;
             height: 40px;
-            background-color: #d3d3d3;
-            border: 2px solid #4682b4;
+            border: 2px solid #228B22;
             border-radius: 5px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 20px;
         }
-        .board-space.current {
-            background-color: #ffd700;
-            border-color: #ff4500;
-        }
+        .board-space.forest { background-color: #228B22; color: white; }
+        .board-space.river { background-color: #00B7EB; color: white; }
+        .board-space.meadow { background-color: #98FB98; }
+        .board-space.mountain { background-color: #808080; color: white; }
+        .board-space.wildcard { background-color: #FFD700; font-size: 16px; }
+        .board-space.current { border-color: #FF4500; }
         #card {
             font-size: 24px;
             margin: 20px 0;
@@ -64,20 +68,20 @@
             font-size: 20px;
             width: 100px;
             margin-bottom: 10px;
-            border: 2px solid #4682b4;
+            border: 2px solid #228B22;
             border-radius: 5px;
         }
         button {
             padding: 12px 24px;
             font-size: 18px;
-            background-color: #32cd32;
+            background-color: #32CD32;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
         }
         button:hover {
-            background-color: #228b22;
+            background-color: #228B22;
         }
         #feedback {
             font-size: 20px;
@@ -85,88 +89,120 @@
         }
         #progress {
             font-size: 18px;
-            color: #4682b4;
+            color: #228B22;
             margin-bottom: 10px;
         }
         #win-screen {
             display: none;
             font-size: 28px;
-            color: #ff4500;
+            color: #FF4500;
             margin-top: 20px;
         }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <h1>Math Quest: Emoji Adventure</h1>
-        <div id="progress">Card 1/20</div>
+        <h1>Matemātikas Dabas Piedzīvojums</h1>
+        <div id="player-setup">
+            <label for="player-count">Spēlētāju skaits (2-4):</label>
+            <input type="number" id="player-count" min="2" max="4" value="2">
+            <button onclick="startGame()">Sākt Spēli</button>
+        </div>
+        <div id="progress"></div>
         <div id="board"></div>
         <div id="card"></div>
-        <input type="number" id="answer" placeholder="Your answer">
+        <input type="number" id="answer" placeholder="Tava atbilde">
         <br>
-        <button onclick="checkAnswer()">Submit</button>
+        <button onclick="checkAnswer()">Iesniegt</button>
         <div id="feedback"></div>
-        <div id="win-screen">🎉 You Conquered the Emoji Math Quest! 🎉</div>
+        <div id="win-screen"></div>
     </div>
 
     <script>
         const problems = [
-            { question: "A farmer 👨‍🌾 picks 15 apples 🍎 and adds 7 more from the tree. How many in total?", answer: 22 },
-            { question: "A girl 👧 has 20 carrots 🥕 but gives 8 to her rabbit 🐰. How many left?", answer: 12 },
-            { question: "A bird 🐦 collects 12 oranges 🍊 and finds 9 more on the ground. How many now?", answer: 21 },
-            { question: "A monkey 🐵 steals 18 grapes 🍇 but drops 6 while running. How many kept?", answer: 12 },
-            { question: "A chef 👩‍🍳 buys 25 apples 🍎 and uses 10 for pie. How many remaining?", answer: 15 },
-            { question: "A squirrel 🐿️ gathers 14 carrots 🥕 and shares 5 with friends. How many does it have?", answer: 9 },
-            { question: "A basket 🧺 holds 16 oranges 🍊, then 8 more are added. How many total?", answer: 24 },
-            { question: "A vine has 22 grapes 🍇, but a wind blows away 7. How many left?", answer: 15 },
-            { question: "A boy 👦 picks 13 apples 🍎 and his sister adds 6. How many together?", answer: 19 },
-            { question: "A dog 🐶 digs up 19 carrots 🥕 but buries 4 back. How many out?", answer: 15 },
-            { question: "A tree drops 17 oranges 🍊, and 5 more fall later. How many on the ground?", answer: 22 },
-            { question: "A bunch of 24 grapes 🍇 is eaten by birds 🐦, leaving 9 gone. How many remain?", answer: 15 },
-            { question: "A girl 👧 has 11 apples 🍎 and finds 10 more in the orchard. How many now?", answer: 21 },
-            { question: "A rabbit 🐰 munches 21 carrots 🥕 but stops after 7. How many uneaten?", answer: 14 },
-            { question: "A picnic basket 🧺 gets 18 oranges 🍊, plus 6 from a friend. How many total?", answer: 24 },
-            { question: "A vine loses 26 grapes 🍇 to rain, with 11 washed away. How many still on?", answer: 15 },
-            { question: "A chef 👩‍🍳 collects 15 apples 🍎 and buys 8 more. How many for cooking?", answer: 23 },
-            { question: "A monkey 🐵 has 23 carrots 🥕 but throws 9 at friends. How many kept?", answer: 14 },
-            { question: "A bird 🐦 nests with 14 oranges 🍊 and gathers 7 more. How many in nest?", answer: 21 },
-            { question: "A squirrel 🐿️ stores 28 grapes 🍇 but forgets 12 in the tree. How many stored?", answer: 16 }
+            { question: "Mežā 🌳 aug 10 ozoli un 5 priedes. Cik koku kopā?", answer: 15 },
+            { question: "Meža zvērs 🦔 savāc 12 ozolas 🌰, bet 4 atdod draugiem. Cik paliek?", answer: 8 },
+            { question: "Putns 🐦 savāc 8 kastaņus 🌰 un atrod vēl 6. Cik tagad?", answer: 14 },
+            { question: "Lācis 🐻 nozog 15 ogas 🍓, bet 5 nokrīt. Cik saglabā?", answer: 10 },
+            { question: "Meža pavārs 👩‍🍳 savāc 18 sēnes 🍄 un izlieto 7 zupai. Cik paliek?", answer: 11 },
+            { question: "Vāvere 🐿️ savāc 10 ozolas 🌰 un dalās ar 3. Cik tai paliek?", answer: 7 },
+            { question: "Pļavā 🌼 aug 12 ziedi, pievieno vēl 6. Cik kopā?", answer: 18 },
+            { question: "Koks zaudē 15 lapas 🍂, 5 aizpūš vējš. Cik paliek?", answer: 10 },
+            { question: "Bērns 👦 savāc 9 sēnes 🍄, māsa pievieno 4. Cik kopā?", answer: 13 },
+            { question: "Suns 🐶 izrok 14 burkānus 🥕, bet 3 aprok atpakaļ. Cik izrakti?", answer: 11 },
+            { question: "Koks nometa 10 lapas 🍂, vēlāk 4 nokrīt. Cik uz zemes?", answer: 14 },
+            { question: "Ogu krūms 🍇 zaudē 16 ogas, 6 aiznes putni. Cik paliek?", answer: 10 },
+            { question: "Meža meitene 👧 savāc 8 sēnes 🍄 un atrod vēl 7. Cik tagad?", answer: 15 },
+            { question: "Trusis 🐰 apēd 12 burkānu 🥕, bet apstājas pie 5. Cik neapēsti?", answer: 7 },
+            { question: "Piknika grozā 🧺 ir 13 ziedi 🌼, draugs pievieno 5. Cik kopā?", answer: 18 },
+            { question: "Ogu krūms 🍇 zaudē 15 ogas lietū, 6 aizskalo. Cik paliek?", answer: 9 },
+            { question: "Pavārs 👩‍🍳 savāc 10 sēnes 🍄 un nopērk vēl 7. Cik zupai?", answer: 17 },
+            { question: "Pērtiķis 🐒 savāc 12 burkānus 🥕, bet 4 aizmet. Cik paliek?", answer: 8 },
+            { question: "Putns 🐦 ligzdā ienes 9 ziedus 🌼 un savāc vēl 5. Cik ligzdā?", answer: 14 },
+            { question: "Vāvere 🐿️ uzglabā 16 ogas 🍇, bet aizmirst 6 kokā. Cik uzglabāts?", answer: 10 }
         ];
 
+        const wildcards = [
+            { type: "move", effect: 2, message: "🌪️ Vējš tevi aizpūš 2 soļus uz priekšu!" },
+            { type: "extra", effect: 1, message: "🌈 Tu atrodi papildu uzdevumu! Atbildi vēlreiz!" }
+        ];
+
+        let players = [];
+        let currentPlayer = 0;
         let currentCard = 0;
         let usedProblems = [];
+        let boardSize = 20;
+        let gameStarted = false;
+        let extraTurn = false;
 
-        // Initialize board
+        function startGame() {
+            const playerCount = parseInt(document.getElementById("player-count").value);
+            if (playerCount < 2 || playerCount > 4) {
+                alert("Lūdzu, izvēlies 2-4 spēlētājus!");
+                return;
+            }
+            players = Array(playerCount).fill().map((_, i) => ({ id: i + 1, position: 0, emoji: ["😺", "🐶", "🦊", "🐻"][i] }));
+            document.getElementById("player-setup").style.display = "none";
+            gameStarted = true;
+            initBoard();
+            loadCard();
+        }
+
         function initBoard() {
             const board = document.getElementById("board");
-            for (let i = 0; i < 20; i++) {
+            board.innerHTML = "";
+            const fieldTypes = ["forest", "river", "meadow", "mountain"];
+            for (let i = 0; i < boardSize; i++) {
                 const space = document.createElement("div");
-                space.className = "board-space";
+                space.className = `board-space ${i % 5 === 4 ? "wildcard" : fieldTypes[i % 4]}`;
                 if (i === 0) {
                     space.className += " current";
-                    space.textContent = "😊";
+                    space.textContent = players.map(p => p.emoji).join("");
                 }
+                if (i % 5 === 4) space.textContent = "🌟";
                 board.appendChild(space);
             }
         }
 
-        // Update board position
         function updateBoard() {
             const spaces = document.getElementsByClassName("board-space");
             for (let i = 0; i < spaces.length; i++) {
-                spaces[i].className = "board-space";
-                spaces[i].textContent = "";
+                spaces[i].className = `board-space ${i % 5 === 4 ? "wildcard" : ["forest", "river", "meadow", "mountain"][i % 4]}`;
+                spaces[i].textContent = i % 5 === 4 ? "🌟" : "";
             }
-            if (currentCard < spaces.length) {
-                spaces[currentCard].className += " current";
-                spaces[currentCard].textContent = "😊";
-            }
+            players.forEach(player => {
+                if (player.position < spaces.length) {
+                    spaces[player.position].textContent += player.emoji;
+                    spaces[player.position].className += " current";
+                }
+            });
         }
 
-        // Load a new card
         function loadCard() {
-            if (currentCard >= problems.length) {
+            if (players.some(p => p.position >= boardSize - 1)) {
+                const winners = players.filter(p => p.position >= boardSize - 1);
                 document.getElementById("game-container").style.display = "none";
+                document.getElementById("win-screen").textContent = `🌟 Uzvarētājs: ${winners.map(p => `Spēlētājs ${p.id} ${p.emoji}`).join(", ")}! 🌟`;
                 document.getElementById("win-screen").style.display = "block";
                 return;
             }
@@ -180,32 +216,46 @@
             document.getElementById("card").textContent = problems[index].question;
             document.getElementById("answer").value = "";
             document.getElementById("feedback").textContent = "";
-            document.getElementById("progress").textContent = `Card ${currentCard + 1}/20`;
+            document.getElementById("progress").textContent = `Spēlētājs ${players[currentPlayer].id} (${players[currentPlayer].emoji}) | Kārts ${currentCard + 1}/${boardSize}`;
             document.getElementById("answer").focus();
             updateBoard();
         }
 
-        // Check player's answer
         function checkAnswer() {
+            if (!gameStarted) return;
             const userAnswer = parseInt(document.getElementById("answer").value);
             const correctAnswer = problems[usedProblems[currentCard]].answer;
 
             if (userAnswer === correctAnswer) {
-                document.getElementById("feedback").textContent = "Correct! Great job!";
-                document.getElementById("feedback").style.color = "#32cd32";
+                document.getElementById("feedback").textContent = "Pareizi! Lieliski!";
+                document.getElementById("feedback").style.color = "#32CD32";
+                players[currentPlayer].position++;
+                
+                // Check for wildcard
+                if (players[currentPlayer].position % 5 === 4 && players[currentPlayer].position < boardSize - 1) {
+                    const wildcard = wildcards[Math.floor(Math.random() * wildcards.length)];
+                    document.getElementById("feedback").textContent = wildcard.message;
+                    if (wildcard.type === "move") {
+                        players[currentPlayer].position = Math.min(players[currentPlayer].position + wildcard.effect, boardSize - 1);
+                    } else if (wildcard.type === "extra") {
+                        extraTurn = true;
+                    }
+                }
+                
                 currentCard++;
+                usedProblems = [];
+                if (!extraTurn) {
+                    currentPlayer = (currentPlayer + 1) % players.length;
+                }
+                extraTurn = false;
                 setTimeout(loadCard, 1000);
             } else {
-                document.getElementById("feedback").textContent = "Try again!";
-                document.getElementById("feedback").style.color = "#ff4500";
+                document.getElementById("feedback").textContent = "Mēģini vēlreiz!";
+                document.getElementById("feedback").style.color = "#FF4500";
             }
         }
 
         // Start the game
-        initBoard();
-        loadCard();
-
-        // Allow Enter key to submit
         document.getElementById("answer").addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 checkAnswer();
