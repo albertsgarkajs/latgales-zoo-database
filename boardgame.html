@@ -33,12 +33,17 @@
         }
         #board {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column-reverse; /* Start from bottom */
             gap: 5px;
             margin: 20px 0;
             padding: 10px;
             background-color: #F0FFF0;
             border-radius: 10px;
+        }
+        .row {
+            display: flex;
+            width: 100%;
+            gap: 5px;
         }
         .board-space {
             width: 40px;
@@ -127,7 +132,7 @@
             { question: "Meža pavārs 👩‍🍳 savāc 18 sēnes 🍄 un izlieto 7 zupai. Cik paliek?", answer: 11 },
             { question: "Vāvere 🐿️ savāc 10 ozolas 🌰 un dalās ar 3. Cik tai paliek?", answer: 7 },
             { question: "Pļavā 🌼 aug 12 ziedi, pievieno vēl 6. Cik kopā?", answer: 18 },
-            { question: "Kokam bija 15 lapas 🍂, 5 aizpūš vējš. Cik paliek?", answer: 10 },
+            { question: "Koks zaudē 15 lapas 🍂, 5 aizpūš vējš. Cik paliek?", answer: 10 },
             { question: "Bērns 👦 savāc 9 sēnes 🍄, māsa pievieno 4. Cik kopā?", answer: 13 },
             { question: "Suns 🐶 izrok 14 burkānus 🥕, bet 3 aprok atpakaļ. Cik izrakti?", answer: 11 },
             { question: "Koks nometa 10 lapas 🍂, vēlāk 4 nokrīt. Cik uz zemes?", answer: 14 },
@@ -142,18 +147,24 @@
             { question: "Vāvere 🐿️ uzglabā 16 ogas 🍇, bet aizmirst 6 kokā. Cik uzglabāts?", answer: 10 }
         ];
 
-        const wildcards = [
-            { type: "move", effect: 2, message: "🌪️ Vējš tevi aizpūš 2 soļus uz priekšu!" },
-            { type: "extra", effect: 1, message: "🌈 Tu atrodi papildu uzdevumu! Atbildi vēlreiz!" }
+        const hardProblems = [
+            { question: "Vērojot putnus mežā, jūs pamanāt 15 zīles un 12 strazdus. Cik putnu jūs redzējāt kopā?", answer: 27 },
+            { question: "Jūs atrodat trīs salamandrus zem baļķa ar 8 plankumiem, 10 plankumiem un 12 plankumiem attiecīgi. Cik plankumu ir visiem trim salamandriem kopā?", answer: 30 },
+            { question: "Dabas pārgājienā no punkta A līdz B paiet 12 minūtes un no B līdz C – 10 minūtes. Cik ilgi paiet viss pārgājiens no A līdz C?", answer: 22 },
+            { question: "Mežā ir 20 brieži un 15 truši. Cik dzīvnieku kopā?", answer: 35 },
+            { question: "Jūs novācat 28 ziedus, bet 5 novīst. Cik labu paliek?", answer: 23 }
         ];
 
         let players = [];
         let currentPlayer = 0;
         let currentCard = 0;
         let usedProblems = [];
-        let boardSize = 20;
+        let usedHard = [];
+        let boardSize = 30;
+        let cols = 5;
         let gameStarted = false;
         let extraTurn = false;
+        let isHard = false;
 
         function startGame() {
             const playerCount = parseInt(document.getElementById("player-count").value);
@@ -173,29 +184,41 @@
             const board = document.getElementById("board");
             board.innerHTML = "";
             const fieldTypes = ["forest", "river", "meadow", "mountain"];
-            for (let i = 0; i < boardSize; i++) {
-                const space = document.createElement("div");
-                space.className = `board-space ${i % 5 === 4 ? "wildcard" : fieldTypes[i % 4]}`;
-                if (i === 0) {
-                    space.className += " current";
-                    space.textContent = players.map(p => p.emoji).join("");
+            const rows = Math.ceil(boardSize / cols);
+            for (let r = 0; r < rows; r++) {
+                const rowDiv = document.createElement("div");
+                rowDiv.className = "row";
+                if (r % 2 === 1) rowDiv.style.flexDirection = "row-reverse";
+                for (let c = 0; c < cols; c++) {
+                    const logical = r * cols + (r % 2 === 0 ? c : cols - 1 - c);
+                    if (logical >= boardSize) break;
+                    const space = document.createElement("div");
+                    space.className = `board-space ${ (logical + 1) % 6 === 0 ? "wildcard" : fieldTypes[logical % 4] }`;
+                    space.dataset.logical = logical;
+                    if ((logical + 1) % 6 === 0) space.textContent = "🌟";
+                    if (logical === 0) space.textContent += players.map(p => p.emoji).join("");
+                    rowDiv.appendChild(space);
                 }
-                if (i % 5 === 4) space.textContent = "🌟";
-                board.appendChild(space);
+                board.appendChild(rowDiv);
             }
         }
 
         function updateBoard() {
             const spaces = document.getElementsByClassName("board-space");
+            const fieldTypes = ["forest", "river", "meadow", "mountain"];
             for (let i = 0; i < spaces.length; i++) {
-                spaces[i].className = `board-space ${i % 5 === 4 ? "wildcard" : ["forest", "river", "meadow", "mountain"][i % 4]}`;
-                spaces[i].textContent = i % 5 === 4 ? "🌟" : "";
+                const log = parseInt(spaces[i].dataset.logical);
+                spaces[i].className = `board-space ${ (log + 1) % 6 === 0 ? "wildcard" : fieldTypes[log % 4] }`;
+                spaces[i].textContent = (log + 1) % 6 === 0 ? "🌟" : "";
             }
             players.forEach(player => {
-                if (player.position < spaces.length) {
-                    spaces[player.position].textContent += player.emoji;
-                    if (player.id === players[currentPlayer].id) {
-                        spaces[player.position].className += " current";
+                if (player.position < boardSize) {
+                    const target = document.querySelector(`.board-space[data-logical="${player.position}"]`);
+                    if (target) {
+                        target.textContent += player.emoji;
+                        if (player.id === players[currentPlayer].id) {
+                            target.className += " current";
+                        }
                     }
                 }
             });
@@ -210,13 +233,15 @@
                 return;
             }
 
+            const problemSet = isHard ? hardProblems : problems;
+            const used = isHard ? usedHard : usedProblems;
             let index;
             do {
-                index = Math.floor(Math.random() * problems.length);
-            } while (usedProblems.includes(index));
-            usedProblems.push(index);
+                index = Math.floor(Math.random() * problemSet.length);
+            } while (used.includes(index));
+            used.push(index);
 
-            document.getElementById("card").textContent = `Spēlētājs ${players[currentPlayer].id} (${players[currentPlayer].emoji}): ${problems[index].question}`;
+            document.getElementById("card").textContent = `Spēlētājs ${players[currentPlayer].id} (${players[currentPlayer].emoji}): ${problemSet[index].question}`;
             document.getElementById("answer").value = "";
             document.getElementById("answer").focus();
             document.getElementById("feedback").textContent = "";
@@ -227,39 +252,39 @@
         function checkAnswer() {
             if (!gameStarted) return;
             const userAnswer = parseInt(document.getElementById("answer").value);
-            const correctAnswer = problems[usedProblems[currentCard]].answer;
-
             if (isNaN(userAnswer)) {
                 document.getElementById("feedback").textContent = "Lūdzu, ievadi skaitli!";
                 document.getElementById("feedback").style.color = "#FF4500";
                 return;
             }
 
+            const problemSet = isHard ? hardProblems : problems;
+            const used = isHard ? usedHard : usedProblems;
+            const correctAnswer = problemSet[used[currentCard]].answer;
+
             if (userAnswer === correctAnswer) {
                 document.getElementById("feedback").textContent = "Pareizi! Lieliski!";
                 document.getElementById("feedback").style.color = "#32CD32";
                 players[currentPlayer].position++;
                 
-                // Check for wildcard
-                if (players[currentPlayer].position % 5 === 4 && players[currentPlayer].position < boardSize - 1) {
-                    const wildcard = wildcards[Math.floor(Math.random() * wildcards.length)];
-                    document.getElementById("feedback").textContent = wildcard.message;
-                    if (wildcard.type === "move") {
-                        players[currentPlayer].position = Math.min(players[currentPlayer].position + wildcard.effect, boardSize - 1);
-                    } else if (wildcard.type === "extra") {
-                        extraTurn = true;
-                    }
+                // Check for wildcard (special post)
+                if (players[currentPlayer].position % 6 === 5 && players[currentPlayer].position < boardSize - 1) {
+                    document.getElementById("feedback").textContent = "Īpašs izaicinājums! Atbildi uz grūtu jautājumu par dubultu gājienu!";
+                    isHard = true;
+                    extraTurn = true;
                 }
-
+                
                 currentCard++;
-                if (currentCard >= problems.length) {
-                    usedProblems = []; // Reset used problems if we run out
+                if (currentCard >= problemSet.length) {
+                    if (isHard) usedHard = [];
+                    else usedProblems = [];
                     currentCard = 0;
                 }
                 if (!extraTurn) {
                     currentPlayer = (currentPlayer + 1) % players.length;
                 }
                 extraTurn = false;
+                if (isHard) isHard = false; // Reset after hard correct
                 setTimeout(loadCard, 1000);
             } else {
                 document.getElementById("feedback").textContent = "Mēģini vēlreiz!";
