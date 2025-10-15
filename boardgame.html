@@ -127,7 +127,7 @@
             { question: "Meža pavārs 👩‍🍳 savāc 18 sēnes 🍄 un izlieto 7 zupai. Cik paliek?", answer: 11 },
             { question: "Vāvere 🐿️ savāc 10 ozolas 🌰 un dalās ar 3. Cik tai paliek?", answer: 7 },
             { question: "Pļavā 🌼 aug 12 ziedi, pievieno vēl 6. Cik kopā?", answer: 18 },
-            { question: "Kokam bija 15 lapas 🍂, 5 aizpūš vējš. Cik paliek?", answer: 10 },
+            { question: "Koks zaudē 15 lapas 🍂, 5 aizpūš vējš. Cik paliek?", answer: 10 },
             { question: "Bērns 👦 savāc 9 sēnes 🍄, māsa pievieno 4. Cik kopā?", answer: 13 },
             { question: "Suns 🐶 izrok 14 burkānus 🥕, bet 3 aprok atpakaļ. Cik izrakti?", answer: 11 },
             { question: "Koks nometa 10 lapas 🍂, vēlāk 4 nokrīt. Cik uz zemes?", answer: 14 },
@@ -163,6 +163,7 @@
             }
             players = Array(playerCount).fill().map((_, i) => ({ id: i + 1, position: 0, emoji: ["😺", "🐶", "🦊", "🐻"][i] }));
             document.getElementById("player-setup").style.display = "none";
+            document.getElementById("answer").disabled = false;
             gameStarted = true;
             initBoard();
             loadCard();
@@ -193,7 +194,9 @@
             players.forEach(player => {
                 if (player.position < spaces.length) {
                     spaces[player.position].textContent += player.emoji;
-                    spaces[player.position].className += " current";
+                    if (player.id === players[currentPlayer].id) {
+                        spaces[player.position].className += " current";
+                    }
                 }
             });
         }
@@ -213,11 +216,11 @@
             } while (usedProblems.includes(index));
             usedProblems.push(index);
 
-            document.getElementById("card").textContent = problems[index].question;
+            document.getElementById("card").textContent = `Spēlētājs ${players[currentPlayer].id} (${players[currentPlayer].emoji}): ${problems[index].question}`;
             document.getElementById("answer").value = "";
-            document.getElementById("feedback").textContent = "";
-            document.getElementById("progress").textContent = `Spēlētājs ${players[currentPlayer].id} (${players[currentPlayer].emoji}) | Kārts ${currentCard + 1}/${boardSize}`;
             document.getElementById("answer").focus();
+            document.getElementById("feedback").textContent = "";
+            document.getElementById("progress").textContent = `Spēlētājs ${players[currentPlayer].id} (${players[currentPlayer].emoji}) | Pozīcija ${players[currentPlayer].position + 1}/${boardSize}`;
             updateBoard();
         }
 
@@ -225,6 +228,12 @@
             if (!gameStarted) return;
             const userAnswer = parseInt(document.getElementById("answer").value);
             const correctAnswer = problems[usedProblems[currentCard]].answer;
+
+            if (isNaN(userAnswer)) {
+                document.getElementById("feedback").textContent = "Lūdzu, ievadi skaitli!";
+                document.getElementById("feedback").style.color = "#FF4500";
+                return;
+            }
 
             if (userAnswer === correctAnswer) {
                 document.getElementById("feedback").textContent = "Pareizi! Lieliski!";
@@ -241,9 +250,12 @@
                         extraTurn = true;
                     }
                 }
-                
+
                 currentCard++;
-                usedProblems = [];
+                if (currentCard >= problems.length) {
+                    usedProblems = []; // Reset used problems if we run out
+                    currentCard = 0;
+                }
                 if (!extraTurn) {
                     currentPlayer = (currentPlayer + 1) % players.length;
                 }
@@ -252,10 +264,12 @@
             } else {
                 document.getElementById("feedback").textContent = "Mēģini vēlreiz!";
                 document.getElementById("feedback").style.color = "#FF4500";
+                document.getElementById("answer").value = "";
+                document.getElementById("answer").focus();
             }
         }
 
-        // Start the game
+        // Event listeners
         document.getElementById("answer").addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 checkAnswer();
