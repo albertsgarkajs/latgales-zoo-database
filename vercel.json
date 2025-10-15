@@ -27,6 +27,10 @@
       "src": "/visitorcount.html",
       "dest": "/visitorcount.html"
     },
+      {
+      "src": "/boardgame.html",
+      "dest": "/boardgame.html"
+    },
     {
       "src": "/",
       "dest": "/index.html"
